@@ -465,13 +465,29 @@ test('Windows desktop', async t => {
     await button('Close side panel').waitFor();
     await button('Maximize').click();
     await waitWindowState(app, 'isMaximized', true);
-    await page.waitForFunction(() => document.querySelector('.shell').dataset.panel === 'overlay');
-    const overlayChat = await page.locator('#chat-form').boundingBox();
+    await page.waitForFunction(() => document.querySelector('.shell').dataset.panel === 'docked');
+    async function maximizedLayout() {
+      return page.evaluate(() => {
+        const box = selector => document.querySelector(selector).getBoundingClientRect();
+        const rail = box('#rail'), main = box('#main'), panel = box('#activity-panel'), form = box('#chat-form');
+        return { rail: rail.width, workspace: main.width, panel: panel.width,
+          adjacent: Math.abs(main.right - panel.left) <= 1,
+          centered: Math.abs((form.left - main.left) - (main.right - form.right)) <= 2 };
+      });
+    }
+    await page.waitForFunction(() => document.documentElement.classList.contains('maximized')
+      && document.getElementById('rail').getAnimations().every(animation => animation.playState !== 'running'));
+    const docked = await maximizedLayout();
+    assert.ok(docked.rail <= 264 && docked.adjacent && docked.centered, JSON.stringify(docked));
     await button('Close side panel').click();
     await button('Open side panel').waitFor();
-    assert.ok(Math.abs((await page.locator('#chat-form').boundingBox()).width - overlayChat.width) < 1);
+    const closed = await maximizedLayout();
+    assert.ok(closed.centered && Math.abs(closed.workspace - docked.workspace - docked.panel) <= 2,
+      JSON.stringify({ docked, closed }));
     await button('Open side panel').click();
     await button('Close side panel').waitFor();
+    const reopened = await maximizedLayout();
+    assert.ok(reopened.adjacent && reopened.centered && Math.abs(reopened.rail - closed.rail) <= 1);
     await button('Close side panel').press('Escape');
     await button('Open side panel').waitFor();
     await button('Restore').click();

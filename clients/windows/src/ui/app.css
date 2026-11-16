@@ -50,7 +50,8 @@ button:disabled:active { filter: none; }
 .native #close:hover { background: #c32b36; color: white; }
 .caption-button:focus-visible { outline-offset: -4px; }
 .shell { flex: 1; min-height: 0; display: flex; padding: 0 calc(15 * var(--u)) calc(15 * var(--u)) 0; }
-#rail { flex: none; width: clamp(194px,17.5cqw,300px); display: flex; flex-direction: column; padding: 0 calc(18 * var(--u)); overflow-y: auto; }
+.maximized { --rail-width: clamp(194px,15.5vw,264px); }
+#rail { flex: none; width: var(--rail-width,clamp(194px,17.5cqw,300px)); display: flex; flex-direction: column; padding: 0 calc(18 * var(--u)); overflow-y: auto; }
 .brand { display: flex; align-items: center; gap: 4px; height: 58px; padding-left: 3px; flex: none; font: 800 24px/1 Nunito, "Segoe UI", sans-serif; }
 .brand img { display: block; width: 38px; height: 38px; object-fit: contain; }
 #sidebar { margin-left: auto; width: 44px; height: 44px; display: grid; place-items: center; flex: none; border-radius: 10px; color: var(--muted); }
@@ -289,12 +290,7 @@ dialog .preview-value { color: var(--text); font-size: 22px; margin-bottom: 0; }
 #toggle-panel[aria-expanded="true"] { color: var(--accent); background: var(--lavender); }
 #activity-panel { --tool-bg: #f2eef5; display: flex; flex-direction: column; width: var(--activity-width,402px); min-height: 0; flex: none; border: 1px solid var(--line); border-left: 0; border-radius: 0 var(--radius) var(--radius) 0; overflow: hidden; background: #faf9fb; }
 .shell[data-panel="docked"] #main { border-top-right-radius: 0; border-bottom-right-radius: 0; }
-.shell[data-panel="overlay"] #activity-panel { position: absolute; z-index: 2; top: 0; bottom: calc(15 * var(--u)); right: calc(15 * var(--u)); width: min(402px,calc(100% - 80px)); border-left: 1px solid var(--line); box-shadow: -8px 3px 22px #35233c15; }
-.shell[data-panel="overlay"] :is(.chat-header,.library-heading) { padding-right: 422px; }
-@media (max-width: 1200px) {
- .shell[data-panel="overlay"] #activity-panel { top: var(--header-height); border-top-left-radius: 14px; }
- .shell[data-panel="overlay"] :is(.chat-header,.library-heading) { padding-right: 16px; }
-}
+.shell[data-panel="overlay"] #activity-panel { position: absolute; z-index: 2; top: var(--header-height); bottom: calc(15 * var(--u)); right: calc(15 * var(--u)); width: min(402px,calc(100% - 80px)); border-left: 1px solid var(--line); border-top-left-radius: 14px; box-shadow: -8px 3px 22px #35233c15; }
 .panel-heading { flex: none; display: flex; align-items: center; gap: 6px; height: var(--header-height); padding: 4px 14px 4px 18px; background: #fff; border-bottom: 1px solid var(--line); }
 .panel-heading h2, .chat-header h1 { font: 800 19px/1.15 Nunito,"Segoe UI",sans-serif; }
 .panel-heading h2 { margin-right: auto; }

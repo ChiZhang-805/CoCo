@@ -28,8 +28,15 @@ function isFullWidth() {
   return win.isMaximized() || win.isFullScreen();
 }
 function panelGeometry() {
-  const docked = panelOpen && expansion && !isFullWidth() && win.getBounds().width >= 600 + expansion.width;
-  return { open: panelOpen, width: docked ? expansion.width / win.webContents.getZoomFactor() : 0 };
+  if (!panelOpen) return { open: false, width: 0 };
+  const zoom = win.webContents.getZoomFactor();
+  if (expansion && !isFullWidth() && win.getBounds().width >= 600 + expansion.width) {
+    return { open: true, width: expansion.width / zoom };
+  }
+  const viewport = win.getContentBounds().width / zoom;
+  // Keep at least 600 CSS pixels for the workspace before docking within the existing window.
+  const width = viewport >= 900 ? Math.min(activityWidth, Math.round(viewport * 0.28)) : 0;
+  return { open: true, width };
 }
 function publishGeometry() {
   if (win && !win.isDestroyed()) win.webContents.send('activity-layout', panelGeometry());

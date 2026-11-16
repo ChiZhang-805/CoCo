@@ -86,6 +86,7 @@ sidebarToggle.addEventListener('click', () => {
 new ResizeObserver(updateSidebar).observe(byId('workspace'));
 updateSidebar();
 function setMaximized(value) {
+  document.documentElement.classList.toggle('maximized', value);
   const button = byId('maximize');
   const label = value ? 'Restore' : 'Maximize';
   button.title = label;
