@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CoCo</title>
+<link rel="stylesheet" href="app.css">
+<script src="app.js" defer></script>
+</head>
+<body>
+<svg class="symbols" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
+<symbol id="icon-back" viewBox="0 0 24 24"><path d="M21 12H3m8-8-8 8 8 8"/></symbol>
+<symbol id="icon-forward" viewBox="0 0 24 24"><path d="M3 12h18m-8-8 8 8-8 8"/></symbol>
+<symbol id="icon-sidebar" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="3"/><path d="M8 3v18"/></symbol>
+<symbol id="icon-minimize" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+<symbol id="icon-maximize" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx=".5"/></symbol>
+<symbol id="icon-restore" viewBox="0 0 24 24"><path d="M8 7V4h12v12h-3"/><rect x="4" y="8" width="12" height="12" rx=".5"/></symbol>
+<symbol id="icon-close" viewBox="0 0 24 24"><path d="m5 5 14 14m0-14L5 19"/></symbol>
+<symbol id="icon-chat" viewBox="0 0 24 24"><path d="M21 11.3a9.4 9.4 0 0 1-9.4 9.3c-1.5 0-3-.4-4.4-1L3 21l1.2-4.5A9.4 9.4 0 1 1 21 11.3Z"/></symbol>
+<symbol id="icon-tasks" viewBox="0 0 24 24"><rect x="4" y="4.7" width="16" height="17" rx="2"/><rect x="8" y="2" width="8" height="5" rx="1.5"/><path d="m7 12 1.3 1.3 2.5-3M13 12h3m-9 5 1.3 1.3 2.5-3M13 17h3"/></symbol>
+<symbol id="icon-places" viewBox="0 0 24 24"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+<symbol id="icon-devices" viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="13.5" rx="2"/><path d="M12 18v3m-5 0h10"/></symbol>
+<symbol id="icon-mic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12.5" rx="3"/><path d="M5 11a7 7 0 0 0 14 0m-7 7v4m-3.5 0h7"/></symbol>
+<symbol id="icon-profile" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="currentColor" stroke="none"/><path d="M3 21v-1c0-4.2 4.2-7 9-7s9 2.8 9 7v1Z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="icon-phone" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10 5h4m-3.5 14h3"/></symbol>
+<symbol id="icon-next" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+<symbol id="icon-check" viewBox="0 0 24 24"><path d="m4 12 5 5L20 6"/></symbol>
+</defs></svg>
+<a href="#main" class="skip">Skip to workspace</a>
+<header id="titlebar" aria-label="Window controls">
+  <div class="caption-group"><button id="back" class="caption-button" type="button" aria-label="Back" title="Back"><svg class="icon" aria-hidden="true"><use href="#icon-back"></use></svg></button><button id="forward" class="caption-button" type="button" aria-label="Forward" title="Forward"><svg class="icon" aria-hidden="true"><use href="#icon-forward"></use></svg></button><button id="sidebar" type="button" class="caption-button" aria-controls="rail" aria-expanded="true" aria-label="Hide sidebar" title="Hide sidebar"><svg class="icon" aria-hidden="true"><use href="#icon-sidebar"></use></svg></button></div>
+  <div class="caption-group native"><button id="minimize" class="caption-button" type="button" aria-label="Minimize" title="Minimize"><svg class="icon" aria-hidden="true"><use href="#icon-minimize"></use></svg></button><button id="maximize" class="caption-button" type="button" aria-label="Maximize" title="Maximize"><svg class="icon" aria-hidden="true"><use href="#icon-maximize"></use></svg></button><button id="close" class="caption-button" type="button" aria-label="Close window" title="Close window"><svg class="icon" aria-hidden="true"><use href="#icon-close"></use></svg></button></div>
+</header>
+<div class="shell">
+ <aside id="rail" aria-label="Sidebar">
+  <div class="brand"><img src="../../resources/icon.png" alt="" width="56" height="56"><span>CoCo</span></div>
+  <nav aria-label="Workspace"><button type="button" data-page="chat"><svg class="icon" aria-hidden="true"><use href="#icon-chat"></use></svg><span>Chat</span></button><button type="button" data-page="tasks"><svg class="icon" aria-hidden="true"><use href="#icon-tasks"></use></svg><span>Tasks</span></button><button type="button" data-page="places"><svg class="icon" aria-hidden="true"><use href="#icon-places"></use></svg><span>Places &amp; routes</span></button><button type="button" data-page="devices"><svg class="icon" aria-hidden="true"><use href="#icon-devices"></use></svg><span>Devices<small>No device connected</small></span></button></nav>
+  <button id="profile" class="profile" type="button"><span class="avatar"><svg class="icon" aria-hidden="true"><use href="#icon-profile"></use></svg></span><span id="display-name">Local user</span></button>
+ </aside>
+ <main id="main" tabindex="-1">
+  <section data-view="chat" class="meeting-page" aria-labelledby="meeting-heading">
+   <div class="meeting-content">
+    <div class="robot"><img src="../../resources/robot.png" alt="CoCo" width="1536" height="1024"></div>
+    <h1 id="meeting-heading">Set a meeting point</h1>
+    <p class="subtitle">Milk tea pickup · Haining International Campus</p>
+    <form id="meeting-form" class="composer"><label for="meeting" title="Meeting point"><svg class="icon" aria-hidden="true"><use href="#icon-places"></use></svg><span class="sr-only">Meeting point</span></label>
+     <input id="meeting" type="text" value="Library entrance" maxlength="160" required autocomplete="off" spellcheck="false" aria-describedby="meeting-error">
+     <button id="voice" class="voice" type="button" aria-label="Voice input" title="Voice input"><svg class="icon" aria-hidden="true"><use href="#icon-mic"></use></svg></button>
+     <button class="primary" type="submit">Save meeting point</button>
+    </form>
+    <p class="form-error" id="meeting-error" role="alert"></p>
+   </div>
+  </section>
+  <section data-view="tasks" class="detail-page" hidden aria-labelledby="tasks-heading">
+   <div class="detail-content">
+    <span class="page-icon"><svg class="icon" aria-hidden="true"><use href="#icon-tasks"></use></svg></span><h1 id="tasks-heading" tabindex="-1">Tasks</h1>
+    <article class="detail-card"><h2>Milk tea pickup</h2>
+     <p>Haining International Campus</p>
+     <dl><dt>Meeting point draft</dt><dd data-value="meeting"></dd></dl>
+     <div class="actions"><button type="button" data-edit-meeting class="secondary">Edit meeting point</button><button id="order" type="button" class="secondary">Order on iPhone</button></div>
+    </article>
+   </div>
+  </section>
+  <section data-view="places" class="detail-page" hidden aria-labelledby="places-heading">
+   <div class="detail-content"><span class="page-icon"><svg class="icon" aria-hidden="true"><use href="#icon-places"></use></svg></span><h1 id="places-heading" tabindex="-1">Places &amp; routes</h1>
+    <article class="detail-card"><h2>Haining International Campus</h2>
+    <dl><dt>Pickup location</dt><dd>Not selected</dd><dt>Meeting point draft</dt><dd data-value="meeting"></dd></dl>
+    <button type="button" data-edit-meeting class="primary">Set meeting point</button></article>
+   </div>
+  </section>
+  <section data-view="devices" class="detail-page" hidden aria-labelledby="devices-heading">
+   <div class="detail-content"><span class="page-icon"><svg class="icon" aria-hidden="true"><use href="#icon-devices"></use></svg></span><h1 id="devices-heading" tabindex="-1">Devices</h1>
+    <article class="detail-card"><h2>No device connected</h2></article>
+   </div>
+  </section>
+ </main>
+</div>
+<dialog id="meeting-dialog" aria-labelledby="preview-title"><h2 id="preview-title">Meeting point</h2><p class="preview-value" id="preview-value"></p><p>Haining International Campus</p><button type="button" class="primary" data-dismiss>Close</button></dialog>
+<dialog id="voice-dialog" aria-labelledby="voice-title"><h2 id="voice-title">Voice input</h2><button id="type-instead" class="primary">Type instead</button></dialog>
+<dialog id="profile-dialog" aria-labelledby="profile-title"><h2 id="profile-title">Your profile</h2><p id="profile-name"></p><button type="button" class="primary" data-dismiss>Close</button></dialog>
+<dialog id="order-dialog" aria-labelledby="order-title"><h2 id="order-title">Order on iPhone</h2><p>Choose your drink and confirm payment in the merchant’s app on your iPhone.</p><button type="button" class="primary" data-dismiss>Close</button></dialog>
+</body></html>

@@ -1,0 +1,49 @@
+{
+  "name": "coco-windows",
+  "productName": "CoCo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "CoCo desktop workspace for campus pickup tasks",
+  "author": "CoCo contributors",
+  "license": "Apache-2.0",
+  "main": "src/main.cjs",
+  "scripts": {
+    "prepare:assets": "node packaging/assets.cjs",
+    "start": "npm run prepare:assets && electron .",
+    "test": "npm run prepare:assets && node --test tests/windows.test.cjs",
+    "dist": "npm run prepare:assets && electron-builder --win nsis --x64",
+    "test:package": "node tests/windows.test.cjs --packaged"
+  },
+  "devDependencies": {
+    "@fontsource-variable/noto-sans-sc": "5.3.1",
+    "@fontsource-variable/nunito": "5.3.0",
+    "electron": "45.3.3",
+    "electron-builder": "26.18.0",
+    "playwright-core": "1.65.1"
+  },
+  "build": {
+    "appId": "org.coco.desktop.windows",
+    "productName": "CoCo",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "resources/**/*",
+      "package.json"
+    ],
+    "win": {
+      "icon": "resources/icon.png",
+      "target": [
+        "nsis"
+      ],
+      "artifactName": "CoCo-Setup-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "runAfterFinish": false
+    }
+  }
+}

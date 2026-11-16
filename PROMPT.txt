@@ -6,7 +6,7 @@ CoCo — Codex 本地开发提示词
 
 一、项目目标
 
-CoCo 是个人空中智能机器人助手。用户通过自然语言提出目标，AI Agent 协调软件操作和实体机器人执行。客户端包括 Windows、Ubuntu、macOS 三款桌面软件和一款 iOS App。目标称呼与唤醒方式是 CoCo / Hey CoCo。
+CoCo 是个人空中智能机器人助手。用户通过自然语言提出目标，AI Agent 协调软件操作和实体机器人执行。Windows、Ubuntu、macOS 三款桌面软件采用 Electron，iOS App 独立开发。目标称呼与唤醒方式是 CoCo / Hey CoCo。
 
 四端仅提供英文版，暂不提供中文版或语言切换。设计稿、客户端实现和验收中的产品文案均使用英文，包括无障碍名称、任务状态、错误反馈和应用提供的权限说明。
 
