@@ -42,7 +42,9 @@
     "nsis": {
       "oneClick": false,
       "perMachine": false,
-      "allowToChangeInstallationDirectory": true,
+      "multiLanguageInstaller": false,
+      "include": "packaging/setup.nsh",
+      "installerSidebar": "packaging/setup-sidebar.bmp",
       "runAfterFinish": false
     }
   }
