@@ -52,12 +52,11 @@ button:disabled:active { filter: none; }
 .caption-button:focus-visible { outline-offset: -4px; }
 .shell { --outer-gap: calc(15 * var(--u)); flex: 1; min-height: 0; display: flex; padding: 0 var(--outer-gap) var(--outer-gap) 0; }
 .maximized { --rail-width: clamp(194px,15.5vw,264px); }
-#rail { --end-action-width: 36px; flex: none; width: var(--rail-width,clamp(194px,17.5cqw,300px)); display: flex; flex-direction: column; padding: 0 calc(18 * var(--u)) 0 var(--outer-gap); overflow-y: auto; }
+#rail { --end-action-width: 36px; --rail-end-padding: calc(18 * var(--u)); flex: none; width: var(--rail-width,clamp(194px,17.5cqw,300px)); display: flex; flex-direction: column; padding: 0 var(--rail-end-padding) 0 var(--outer-gap); overflow-y: auto; }
 .brand { display: flex; align-items: center; gap: 4px; height: 58px; padding-left: 3px; flex: none; font: 800 24px/1 Nunito, "Segoe UI", sans-serif; }
 .brand img { display: block; width: 38px; height: 38px; object-fit: contain; }
 #sidebar { margin-left: auto; width: var(--end-action-width); height: 44px; display: grid; place-items: center; flex: none; border-radius: 10px; color: var(--muted); }
 #sidebar:hover { background: #e8e7eb; }
-#sidebar .icon { width: 19px; height: 19px; }
 nav { display: grid; gap: calc(4 * var(--u)); margin-top: calc(9 * var(--u)); }
 nav button { text-align: left; display: flex; align-items: flex-start; gap: calc(16 * var(--u)); padding: calc(14 * var(--u)) 8px; border-radius: calc(13 * var(--u)); font: 600 max(16px,calc(22 * var(--u)))/1.3 Nunito, "Segoe UI", sans-serif; min-height: 44px; }
 nav .icon { width: calc(26 * var(--u)); height: calc(26 * var(--u)); }
@@ -230,20 +229,21 @@ dialog .preview-value { color: var(--text); font-size: 22px; margin-bottom: 0; }
 .icon-action .icon { width: 18px; height: 18px; }
 .icon-action:hover:enabled, .icon-action[aria-pressed="true"], .icon-action.is-rated { background: var(--lavender); color: var(--accent); }
 .icon-action:disabled { opacity: .4; }
-#conversations { min-height: 55px; flex: 1; display: flex; flex-direction: column; margin: 15px 0 6px 1px; border-top: 1px solid var(--line); padding-top: 8px; }
+#conversations { container-type: inline-size; min-height: 55px; flex: 1; display: flex; flex-direction: column; margin: 15px 0 6px 1px; border-top: 1px solid var(--line); padding-top: 8px; }
 .history-heading { display: flex; align-items: center; min-height: 38px; padding-left: 7px; }
 .history-heading h2 { flex: 1; min-width: 0; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: 13px; font-weight: 800; }
 .history-heading .icon-action { width: 29px; height: 32px; }
-#archive-filter { width: var(--end-action-width); }
-.history-heading .icon, .row-more .icon { width: 16px; height: 16px; }
-#history-list { overflow: auto; color: var(--muted); font: 600 13px/1.35 Nunito, "Segoe UI", sans-serif; }
-.history-row { display: flex; align-items: center; min-height: 38px; margin-block: 2px; border-radius: 9px; }
+#archive-filter, .row-more { width: var(--end-action-width); }
+#sidebar .icon, .history-heading .icon, .row-more .icon { width: 16px; height: 16px; }
+/* Let the scrollbar use the rail padding while rows keep the heading's width. */
+#history-list { overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; margin-inline-end: calc(-1 * var(--rail-end-padding)); color: var(--muted); font: 600 13px/1.35 Nunito, "Segoe UI", sans-serif; }
+.history-row { width: 100cqw; display: flex; align-items: center; min-height: 38px; margin-block: 2px; border-radius: 9px; }
 .history-row:hover { background: #eae9ed; }
 .history-row:has([aria-current]) { background: #e9e1f1; color: #643480; }
 .history-item { flex: 1; min-width: 0; min-height: 38px; padding-inline: 10px 2px; display: flex; align-items: center; gap: 6px; text-align: left; border-radius: 9px; }
 .history-item span, .chat-header h1 { white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
 .history-item .icon { width: 13px; height: 13px; }
-.row-more { width: 26px; height: 32px; margin-right: 3px; }
+.row-more { height: 32px; }
 .row-more[data-menu-anchor] { anchor-name: --conversation-options; }
 #history-menu { position: fixed; position-anchor: --conversation-options; inset: auto; top: anchor(bottom); left: anchor(left); position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline; position-visibility: anchors-visible; padding: 5px; margin: 4px 0; border: 1px solid var(--line); border-radius: 11px; background: white; box-shadow: 0 8px 28px #36263d22; }
 #history-menu button { display: block; width: 100%; padding: 9px 12px; text-align: left; border-radius: 7px; font-size: 14px; }

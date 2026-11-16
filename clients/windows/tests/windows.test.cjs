@@ -57,8 +57,12 @@ test('Windows desktop', async t => {
     return checkAnchoredMenu(button('Options for ' + title), '#history-menu');
   }
   async function checkSidebarAlignment() {
-    const [collapse, archive] = await Promise.all(['#sidebar .icon', '#archive-filter .icon'].map(id => page.locator(id).boundingBox()));
-    assert.ok(Math.abs(collapse.x + collapse.width / 2 - archive.x - archive.width / 2) < 1);
+    const icons = await page.locator('#sidebar .icon, #archive-filter .icon, .row-more .icon').evaluateAll(elements =>
+      elements.map(el => {
+        const {x, width} = el.getBoundingClientRect();
+        return {center: x + width / 2, width};
+      }));
+    assert.ok(icons.every(icon => icon.width === 16 && Math.abs(icon.center - icons[0].center) < 0.5), JSON.stringify(icons));
     const [left, right] = await page.evaluate(() => [document.querySelector('#workspace-nav').getBoundingClientRect().left,
       innerWidth - document.querySelector('#workspace').getBoundingClientRect().right]);
     assert.ok(Math.abs(left - right) < 1);
@@ -109,6 +113,32 @@ test('Windows desktop', async t => {
     if (process.env.COCO_SCREENSHOT_PATH) await page.screenshot({ path: process.env.COCO_SCREENSHOT_PATH });
   });
 
+  await t.test('sidebar actions stay aligned when conversation history scrolls', async () => {
+    await page.evaluate(() => {
+      const rows = Math.ceil(document.querySelector('#conversations').clientHeight / 38) + 3;
+      for (let i = 0; i < rows; i++) {
+        const id = 'scroll-test-' + i;
+        chatIndex.set(id, {id, title: 'Conversation ' + i, archived: false, pinned: false, updated: i});
+      }
+      renderHistory();
+    });
+    try {
+      const list = page.locator('#history-list');
+      assert.ok(await list.evaluate(el => el.scrollHeight > el.clientHeight && el.scrollWidth === el.clientWidth));
+      await checkSidebarAlignment();
+      await list.locator('.row-more').last().scrollIntoViewIfNeeded();
+      assert.ok(await list.evaluate(el => el.scrollTop > 0));
+      await checkSidebarAlignment();
+      await list.locator('.row-more').last().press('Enter');
+      await checkAnchoredMenu(list.locator('.row-more').last(), '#history-menu');
+      await page.keyboard.press('Escape');
+    } finally {
+      await page.evaluate(() => {
+        for (const id of chatIndex.keys()) if (id.startsWith('scroll-test-')) chatIndex.delete(id);
+        renderHistory();
+      });
+    }
+  });
   await t.test('compact sidebar keeps navigation, active page and profile available', async () => {
     const rail = page.locator('#rail');
     const toggle = page.locator('#sidebar');
