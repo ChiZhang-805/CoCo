@@ -380,7 +380,7 @@ test('Windows desktop', async t => {
     assert.match(await page.locator('.reply').textContent(), /Library north entrance/);
   });
 
-  await t.test('desktop menus and saved maps, run history and paired devices', async () => {
+  await t.test('desktop menus and keyboard shortcuts', async () => {
     const menuItem = name => page.getByRole('menuitem', { name });
     await menuItem('File').click();
     await page.getByRole('menu', { name: 'File' }).waitFor();
@@ -399,9 +399,39 @@ test('Windows desktop', async t => {
     await page.keyboard.press('Alt+e');
     await menuItem(/^Undo/).click();
     await page.waitForFunction(() => document.querySelector('#message').value === '');
+  });
+  await t.test('task instructions, demo reruns and historical flight playback', async () => {
     await button('Tasks').click();
-    await page.locator('.run-row summary').filter({ hasText: 'Campus pickup' }).click();
+    const tracked = page.locator('.run-row').filter({ hasText: 'Campus pickup' });
+    await tracked.getByRole('button', { name: 'View task details' }).click();
     assert.deepEqual(await page.locator('.task-timeline li span').allTextContents(), ['Running', 'Ended']);
+    assert.equal(await page.locator('#inspect-demo').isHidden(), true);
+    await tracked.getByRole('button', { name: 'View flight path' }).click();
+    await page.getByRole('img', {name: /^Recorded flight path/}).waitFor();
+    const sample = page.locator('[data-id="example-tea"]');
+    await sample.getByRole('button', {name: 'View flight path'}).press('Enter');
+    await page.getByRole('img', {name: /Demo flight path from Student Center to Library entrance/}).waitFor();
+    await button('Play route').click();
+    await page.waitForFunction(() => +document.querySelector('#route-progress').value > 60);
+    await button('Pause route').click();
+    await page.locator('#route-progress').press('End');
+    assert.equal(await page.locator('#route-time').textContent(), '4:00');
+    await sample.getByRole('button', {name: 'View task details'}).click();
+    const command = await page.locator('#task-instruction').textContent();
+    const count = await page.locator('.run-row').count();
+    await sample.getByRole('button', {name: 'Run again in demo'}).press('Enter');
+    await page.waitForFunction(n => document.querySelectorAll('.run-row').length === n+1, count);
+    const repeat = page.locator('.run-row.selected');
+    assert.notEqual(await repeat.getAttribute('data-id'), 'example-tea');
+    assert.equal(await repeat.locator('strong').innerText(), 'Milk tea pickup');
+    await button('Task details').click();
+    assert.equal(await page.locator('#task-instruction').textContent(), command);
+    assert.equal(await page.locator('#inspect-demo').isVisible(), true);
+    assert.equal(await page.locator('#run-location').isHidden(), true);
+    await sample.getByRole('button', {name: 'View flight path'}).click();
+    if (process.env.COCO_TASKS_SCREENSHOT_PATH) await page.screenshot({ path: process.env.COCO_TASKS_SCREENSHOT_PATH });
+  });
+  await t.test('numbered campus map pages and local map imports', async () => {
     await button('Maps').click();
     await button('Haining International Campus').waitFor();
     const grid = await page.locator('.map-card').evaluateAll(cards => cards.map(card => {
@@ -419,6 +449,30 @@ test('Windows desktop', async t => {
     if (process.env.COCO_MAPS_GRID_SCREENSHOT_PATH) await page.screenshot({ path: process.env.COCO_MAPS_GRID_SCREENSHOT_PATH });
     const covers = await page.locator('.map-card img').evaluateAll(images => images.map(image => image.src));
     assert.equal(new Set(covers).size, 12);
+    assert.deepEqual(await page.locator('#map-pages button').allTextContents(), ['1','2','3','4']);
+    assert.equal(await page.getByText('Campus maps © OpenStreetMap contributors').count(), 0);
+    await button('Map credits').click();
+    await button('Open data licence').waitFor();
+    await page.keyboard.press('Escape');
+    const allCovers = new Set(covers);
+    for (let n = 2; n <= 4; n++) {
+      await button('Page ' + n).press('Enter');
+      assert.equal(await button('Page ' + n).getAttribute('aria-current'), 'page');
+      const images = page.locator('.map-card img');
+      assert.equal(await images.count(), 12);
+      for (const url of await images.evaluateAll(imgs => Promise.all(imgs.map(async img => {
+        await img.decode();
+        return img.src;
+      })))) allCovers.add(url);
+      const card = page.locator('.map-card').first();
+      const src = await card.locator('img').getAttribute('src');
+      await card.click();
+      assert.equal(await page.locator('.map-sheet img').getAttribute('src'), src);
+      await button('Close side panel').click();
+    }
+    assert.equal(allCovers.size, 48);
+    if (process.env.COCO_MAP_PAGES_SCREENSHOT_PATH) await page.screenshot({ path: process.env.COCO_MAP_PAGES_SCREENSHOT_PATH });
+    await button('Page 1').click();
     for (const card of await page.locator('.map-card').all()) {
       const label = await card.getAttribute('title');
       const cover = await card.locator('img').getAttribute('src');
@@ -444,6 +498,8 @@ test('Windows desktop', async t => {
     await button('Campus sketch').click();
     await page.getByRole('dialog', { name: 'Campus sketch' }).waitFor();
     await page.keyboard.press('Escape');
+  });
+  await t.test('paired devices and native Bluetooth settings', async () => {
     await button('Devices').click();
     await page.locator('#device-list').getByText('Campus iPhone', { exact: true }).waitFor();
     await page.waitForFunction(() => !document.querySelector('#refresh-devices').disabled);
@@ -507,6 +563,14 @@ test('Windows desktop', async t => {
     });
     await page.waitForFunction(() => window.innerWidth <= 620);
     assert.equal(await page.locator('main').evaluate(n => n.scrollWidth <= n.clientWidth + 1), true);
+    await button('Tasks').click();
+    await page.locator('[data-id="example-book"]').getByRole('button', {name: 'View flight path'}).click();
+    await page.getByRole('img', {name: /from Residences to Library entrance/}).waitFor();
+    assert.equal(await page.locator('main').evaluate(n => n.scrollWidth <= n.clientWidth + 1), true);
+    await button('Maps').click();
+    await button('Page 3').click();
+    assert.equal(await page.locator('main').evaluate(n => n.scrollWidth <= n.clientWidth + 1), true);
+    await button('Chat').click();
     await page.keyboard.press('Control+=');
     await page.waitForFunction(() => window.innerWidth < 610);
     assert.equal(await page.locator('main').evaluate(n => n.scrollWidth <= n.clientWidth + 1), true);
@@ -540,9 +604,17 @@ test('Windows desktop', async t => {
     await fresh.getByRole('button', { name: 'Device connection', exact: true }).waitFor();
     await fresh.getByRole('button', { name: 'Tasks', exact: true }).click();
     assert.equal(await fresh.locator('[data-view="tasks"] dd').textContent(), 'Library entrance');
-    await fresh.locator('.run-row summary').filter({ hasText: 'Campus pickup' }).waitFor();
+    await fresh.locator('.run-row').filter({ hasText: 'Campus pickup' }).waitFor();
+    assert.equal(await fresh.locator('.run-row').filter({hasText: 'Milk tea pickup'}).count(), 2);
+    await fresh.locator('.run-row').filter({hasText: 'Milk tea pickup'}).first().getByRole('button', {name:'View task details'}).click();
+    await fresh.locator('#task-events').getByText('Completed').waitFor();
     await fresh.getByRole('button', { name: 'Maps', exact: true }).click();
+    await fresh.getByRole('button', { name: 'Page 5', exact: true }).click();
     await fresh.getByRole('button', { name: 'Campus sketch', exact: true }).waitFor();
+    await fresh.getByRole('button', { name: 'Campus sketch', exact: true }).click();
+    await fresh.getByRole('button', { name: 'Remove from Maps' }).click();
+    await fresh.waitForFunction(() => document.querySelector('#map-pages [aria-current]')?.textContent === '4');
+    assert.equal(await fresh.locator('#map-pages button').count(), 4);
     await fresh.getByRole('button', { name: 'Devices', exact: true }).click();
     await fresh.locator('#device-list').getByText('Campus iPhone', { exact: true }).waitFor();
     assert.deepEqual(errors, []);

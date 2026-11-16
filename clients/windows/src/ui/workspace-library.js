@@ -33,36 +33,18 @@ function element(tag, text, style) {
   if (style) node.className = style;
   return node;
 }
-function localTime(value) {
-  return new Date(value).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-}
-function drawTasks() {
-  const list = byId('task-list');
-  const expanded = new Set([...list.querySelectorAll('details[open]')].map(node => node.dataset.id));
-  list.replaceChildren();
-  if (!taskRuns.size) list.append(element('p', 'No task runs yet.', 'empty-list'));
-  for (const run of [...taskRuns.values()].sort((a,b) => b.updated - a.updated)) {
-    const details = element('details', '', 'run-row');
-    details.dataset.id = run.id;
-    details.open = expanded.has(run.id);
-    const summary = element('summary');
-    summary.append(createIcon('tasks'), element('strong', run.name), element('span', run.events.at(-1).status, 'task-state'), element('time', localTime(run.updated)));
-    const events = element('ol', '', 'task-timeline');
-    for (const event of run.events) {
-      const item = element('li');
-      item.append(element('span', event.status), element('time', localTime(event.at)));
-      events.append(item);
-    }
-    details.append(summary, events);
-    list.append(details);
-  }
-}
-async function recordStatus(id, name, status, at) {
+async function recordStatus(id, name, status, at, instruction, position) {
   const previous = taskRuns.get(id);
-  if (previous?.events.at(-1)?.status === status && previous.name === name) return;
+  instruction ||= previous?.instruction;
+  const last = previous?.positions?.at(-1);
+  const newFix = Number.isFinite(position?.latitude) && Math.abs(position.latitude) <= 90 &&
+    Number.isFinite(position.longitude) && Math.abs(position.longitude) <= 180 &&
+    (last?.latitude !== position.latitude || last?.longitude !== position.longitude);
+  if (!newFix && previous?.events.at(-1)?.status === status && previous.name === name && previous.instruction === instruction) return;
   const events = [...(previous?.events || [])];
   if (events.at(-1)?.status !== status) events.push({ status, at });
-  const next = { id, name, events, updated: at };
+  const next = { id, name, instruction, events, updated: at, positions: previous?.positions };
+  if (newFix) next.positions = [...(next.positions || []), {latitude: position.latitude, longitude: position.longitude, at}];
   await writeEntry('taskRuns', next);
   taskRuns.set(id, next);
   drawTasks();
@@ -83,7 +65,7 @@ function trackWorkspaceActivity({ run, phone }) {
     }
     if (run) {
       const status = statusName(run.status);
-      await recordStatus(id, name, status, now);
+      await recordStatus(id, name, status, now, run.instruction, run.position);
       trackedRun = { id, name, status };
     } else trackedRun = null;
     if (phone?.id && rememberedDevices.get(phone.id)?.name !== (phone.name || 'iPhone')) {
@@ -137,15 +119,27 @@ byId('refresh-devices').onclick = refreshDevices;
 window.addEventListener('focus', () => { if (history[position] === 'devices') refreshDevices(); });
 
 let mapVersion = 0;
-async function drawMaps() {
+let mapPage = 1;
+let libraryMaps = campusMaps;
+const mapsPerPage = 12;
+async function drawMaps(revealId) {
   const version = ++mapVersion;
   const maps = await storedList('maps');
   if (version !== mapVersion) return;
+  libraryMaps = [...campusMaps, ...maps.sort((a,b) => b.added - a.added)];
+  const index = revealId ? libraryMaps.findIndex(entry => entry.id === revealId) : -1;
+  if (index >= 0) mapPage = Math.floor(index / mapsPerPage) + 1;
+  renderMapPage();
+}
+function renderMapPage() {
+  const pages = Math.ceil(libraryMaps.length / mapsPerPage);
+  mapPage = Math.min(mapPage, pages);
   const list = byId('map-list');
   list.replaceChildren();
   for (const url of mapUrls.values()) URL.revokeObjectURL(url);
   mapUrls.clear();
-  for (const entry of [...campusMaps, ...maps.sort((a,b) => b.added - a.added)]) {
+  const start = (mapPage - 1) * mapsPerPage;
+  for (const entry of libraryMaps.slice(start, start + mapsPerPage)) {
     const card = element('button', '', 'map-card');
     card.type = 'button';
     card.title = entry.name;
@@ -170,8 +164,23 @@ async function drawMaps() {
     };
     list.append(card);
   }
+  const pager = byId('map-pages');
+  pager.replaceChildren();
+  for (let n = 1; n <= pages; n++) {
+    const button = element('button', String(n));
+    button.type = 'button';
+    button.setAttribute('aria-label', 'Page ' + n);
+    if (n === mapPage) button.setAttribute('aria-current', 'page');
+    button.onclick = () => {
+      mapPage = n;
+      renderMapPage();
+      byId('main').scrollTop = 0;
+      pager.querySelector('[aria-current]').focus({ preventScroll: true });
+    };
+    pager.append(button);
+  }
 }
-byId('campus-map-credit').onclick = () => window.coco.openMapLicence();
+byId('library-map-source').onclick = () => window.coco.openMapLicence();
 byId('add-map').onclick = () => byId('map-file').click();
 byId('map-file').onchange = async event => {
   const file = event.target.files[0];
@@ -189,8 +198,9 @@ byId('map-file').onchange = async event => {
     return;
   } finally { URL.revokeObjectURL(url); }
   try {
-    await writeEntry('maps', { id: crypto.randomUUID(), name: file.name.replace(/\.[^.]+$/, '') || file.name, added: Date.now(), file });
-    await drawMaps();
+    const id = crypto.randomUUID();
+    await writeEntry('maps', { id, name: file.name.replace(/\.[^.]+$/, '') || file.name, added: Date.now(), file });
+    await drawMaps(id);
   } catch { storageError(); }
 };
 byId('remove-map').onclick = async () => {

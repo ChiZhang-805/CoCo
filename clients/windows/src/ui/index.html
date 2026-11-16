@@ -12,6 +12,7 @@
 <script src="chat-actions.js" defer></script>
 <script src="dictation.js" defer></script>
 <script src="maps/catalog.js" defer></script>
+<script src="task-history.js" defer></script>
 <script src="workspace-library.js" defer></script>
 <script src="activity.js" defer></script>
 <script src="app-menu.js" defer></script>
@@ -54,6 +55,11 @@
 <symbol id="icon-activity" viewBox="0 0 24 24"><path d="M2 12h5l3-7 4 14 3-7h5"/></symbol>
 <symbol id="icon-map" viewBox="0 0 24 24"><path d="m3 5 6-2 6 3 6-2v15l-6 2-6-3-6 2zm6-2v15m6-12v15"/></symbol>
 <symbol id="icon-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v.6"/></symbol>
+<symbol id="icon-route" viewBox="0 0 24 24"><circle cx="5" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M8 6h7a3 3 0 0 1 0 6H9a3 3 0 0 0 0 6h7"/></symbol>
+<symbol id="icon-run-again" viewBox="0 0 24 24"><path d="M4 10a8 8 0 1 1 1.6 7.5M4 4v6h6"/><path d="m10 9 5 3-5 3Z"/></symbol>
+<symbol id="icon-play" viewBox="0 0 24 24"><path d="m7 4 13 8-13 8Z"/></symbol>
+<symbol id="icon-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
+<symbol id="icon-parcel" viewBox="0 0 24 24"><path d="m3 7 9-5 9 5v11l-9 4-9-4Zm0 0 9 5 9-5m-9 5v10M7 5l9 5"/></symbol>
 <symbol id="icon-locate" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="1.6"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></symbol>
 </defs></svg>
 <a href="#main" class="skip">Skip to workspace</a>
@@ -155,19 +161,35 @@
   </section>
   <section data-view="tasks" class="library-page" hidden aria-labelledby="tasks-heading">
    <header class="library-heading"><h1 id="tasks-heading" tabindex="-1">Tasks</h1></header>
-   <div class="library-body"><h2>Task history</h2><div id="task-list"></div>
+   <div class="tasks-body"><div class="history-column"><h2>Task history</h2><div id="task-list" role="list" aria-label="Task history"></div>
     <details class="draft-card" open><summary>Current draft</summary><div><h3>Milk tea pickup</h3>
      <p>Haining International Campus</p><dl><dt>Meeting point draft</dt><dd data-value="meeting"></dd></dl>
-     <div class="actions"><button type="button" data-edit-meeting class="secondary">Edit meeting point</button><button id="order" type="button" class="secondary">Order on iPhone</button></div>
+     <div class="actions"><button type="button" data-edit-meeting class="icon-action" aria-label="Edit meeting point" title="Edit meeting point"><svg class="icon" aria-hidden="true"><use href="#icon-edit"></use></svg></button><button id="order" type="button" class="icon-action" aria-label="Order on iPhone" title="Order on iPhone"><svg class="icon" aria-hidden="true"><use href="#icon-phone"></use></svg></button></div>
     </div></details>
-   </div>
+   </div><section id="task-inspector" aria-labelledby="inspect-heading">
+    <header class="inspect-header"><h2 id="inspect-heading" tabindex="-1">Flight path</h2><button id="inspect-details" class="icon-action" aria-label="Task details" title="Task details"><svg class="icon" aria-hidden="true"><use href="#icon-tasks"></use></svg></button><button id="inspect-route" class="icon-action" aria-label="Flight path" title="Flight path"><svg class="icon" aria-hidden="true"><use href="#icon-route"></use></svg></button></header>
+    <div class="inspect-caption"><span class="demo-tag" id="inspect-demo">Demo</span><strong id="inspect-name"></strong></div>
+    <div id="task-details" hidden><p id="task-instruction"></p><ol id="task-events" class="task-timeline"></ol></div>
+    <div id="task-route" hidden>
+     <div class="route-map"><svg id="route-drawing" role="img" aria-labelledby="route-description"><title id="route-description"></title>
+      <image id="route-basemap" href="haining-campus.webp" width="1000" height="2285.714"/>
+      <path id="route-casing" fill="none" vector-effect="non-scaling-stroke"/><path id="route-line" fill="none" vector-effect="non-scaling-stroke"/>
+      <g id="route-start"><circle r="9"/></g><g id="route-end"><rect x="-8" y="-8" width="16" height="16" rx="3"/></g>
+      <g id="route-cursor"><circle r="12"/><path d="m0-6 5 10-5-2-5 2Z"/></g>
+     </svg><button id="route-credits" class="map-button" popovertarget="map-library-credits" aria-label="Map credits" title="Map credits"><svg class="icon" aria-hidden="true"><use href="#icon-info"></use></svg></button></div>
+     <div class="route-controls"><button id="play-route" class="icon-action" aria-label="Play route" title="Play route"><svg class="icon" aria-hidden="true"><use href="#icon-play"></use></svg></button><input id="route-progress" type="range" min="0" max="1000" value="0" aria-label="Route playback position"><output id="route-time" for="route-progress"></output></div>
+     <div class="route-stops"><span id="origin-stop"></span><span id="destination-stop"></span></div>
+    </div>
+   </section></div><p class="sr-only" id="task-feedback" role="status"></p>
   </section>
   <section data-view="maps" class="library-page" hidden aria-labelledby="maps-heading">
    <header class="library-heading">
     <h1 id="maps-heading" tabindex="-1">Maps</h1>
+    <button type="button" class="icon-action" aria-label="Map credits" title="Map credits" popovertarget="map-library-credits"><svg class="icon" aria-hidden="true"><use href="#icon-info"></use></svg></button>
     <button type="button" id="add-map" class="icon-action" aria-label="Add map…" title="Add map…"><svg class="icon" aria-hidden="true"><use href="#icon-plus"></use></svg></button>
    </header>
-   <div class="library-body"><div id="map-list" class="map-list"></div><button type="button" id="campus-map-credit">Campus maps © OpenStreetMap contributors</button><p id="map-error" role="status"></p></div>
+   <div class="library-body"><div id="map-list" class="map-list"></div><p id="map-error" role="status"></p></div>
+   <div id="map-pages" role="navigation" aria-label="Map pages"></div>
    <input type="file" id="map-file" accept="image/jpeg,image/png,image/webp" hidden>
   </section>
   <section data-view="devices" class="library-page" hidden aria-labelledby="devices-heading">
@@ -203,6 +225,7 @@
   </section>
  </aside>
 </div>
+<div id="map-library-credits" popover><strong>Map credits</strong><br>© OpenStreetMap contributors<br><button type="button" id="library-map-source">Open data licence</button></div>
 <dialog id="saved-map-dialog" aria-labelledby="saved-map-title"><h2 id="saved-map-title"></h2><img id="saved-map-image" alt=""><div class="actions"><button type="button" data-dismiss class="secondary">Close</button><button type="button" id="remove-map" class="secondary">Remove from Maps</button></div></dialog>
 <dialog id="shortcuts-dialog" aria-labelledby="shortcuts-title"><h2 id="shortcuts-title">Keyboard shortcuts</h2><dl id="shortcut-list"></dl><button type="button" class="secondary" data-dismiss>Close</button></dialog>
 <dialog id="about-dialog" aria-labelledby="about-title"><h2 id="about-title">About CoCo</h2><p>CoCo for Windows</p><button type="button" class="secondary" data-dismiss>Close</button></dialog>
