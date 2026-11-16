@@ -2,17 +2,25 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob:; font-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CoCo</title>
 <link rel="stylesheet" href="app.css">
 <script src="app.js" defer></script>
+<script src="conversations.js" defer></script>
+<script src="chat.js" defer></script>
+<script src="chat-actions.js" defer></script>
+<script src="dictation.js" defer></script>
+<script src="workspace-library.js" defer></script>
+<script src="activity.js" defer></script>
+<script src="app-menu.js" defer></script>
 </head>
 <body>
 <svg class="symbols" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
 <symbol id="icon-back" viewBox="0 0 24 24"><path d="M21 12H3m8-8-8 8 8 8"/></symbol>
 <symbol id="icon-forward" viewBox="0 0 24 24"><path d="M3 12h18m-8-8 8 8-8 8"/></symbol>
-<symbol id="icon-sidebar" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="3"/><path d="M8 3v18"/></symbol>
+<symbol id="icon-collapse" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M8 3v18m11-9h-8m4-4-4 4 4 4"/></symbol>
+<symbol id="icon-expand" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M8 3v18m3-9h8m-4-4 4 4-4 4"/></symbol>
 <symbol id="icon-minimize" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
 <symbol id="icon-maximize" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx=".5"/></symbol>
 <symbol id="icon-restore" viewBox="0 0 24 24"><path d="M8 7V4h12v12h-3"/><rect x="4" y="8" width="12" height="12" rx=".5"/></symbol>
@@ -26,58 +34,184 @@
 <symbol id="icon-phone" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10 5h4m-3.5 14h3"/></symbol>
 <symbol id="icon-next" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
 <symbol id="icon-check" viewBox="0 0 24 24"><path d="m4 12 5 5L20 6"/></symbol>
+<symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="icon-send" viewBox="0 0 24 24"><path d="M12 20V4m-7 7 7-7 7 7"/></symbol>
+<symbol id="icon-drink" viewBox="0 0 24 24"><path d="m5 7 2 14h10l2-14M4 7h16m-9 0 2-5h4"/><path d="M9 13c2-2 4 2 7 0"/></symbol>
+<symbol id="icon-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.4"/><path d="m3 17 5-5 4 4 4-5 5 6"/></symbol>
+<symbol id="icon-edit" viewBox="0 0 24 24"><path d="m4 15 11-11a2 2 0 0 1 3 0l2 2a2 2 0 0 1 0 3L9 20l-6 1 1-6Z"/></symbol>
+<symbol id="icon-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M15 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></symbol>
+<symbol id="icon-share" viewBox="0 0 24 24"><path d="M12 15V3m-4 4 4-4 4 4M5 11v7a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3v-7"/></symbol>
+<symbol id="icon-listen" viewBox="0 0 24 24"><path d="M3 9h4l5-4v14l-5-4H3zM16 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/></symbol>
+<symbol id="icon-rate" viewBox="0 0 24 24"><path d="M4 10h3v11H4zM10 10l4-7c2 0 3 1 2 4l-1 3h4a2 2 0 0 1 2 2l-2 7a2 2 0 0 1-2 2h-7z"/></symbol>
+<symbol id="icon-panel" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/></symbol>
+<symbol id="icon-archive" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v11h14V9m-9 4h4"/></symbol>
+<symbol id="icon-pin" viewBox="0 0 24 24"><path d="m8 3 9 0-1 6 3 4v2H5v-2l3-4V3m4 12v6"/></symbol>
+<symbol id="icon-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol>
+<symbol id="icon-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></symbol>
+<symbol id="icon-activity" viewBox="0 0 24 24"><path d="M2 12h5l3-7 4 14 3-7h5"/></symbol>
+<symbol id="icon-map" viewBox="0 0 24 24"><path d="m3 5 6-2 6 3 6-2v15l-6 2-6-3-6 2zm6-2v15m6-12v15"/></symbol>
+<symbol id="icon-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v.6"/></symbol>
+<symbol id="icon-locate" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="1.6"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></symbol>
 </defs></svg>
 <a href="#main" class="skip">Skip to workspace</a>
 <header id="titlebar" aria-label="Window controls">
-  <div class="caption-group"><button id="back" class="caption-button" type="button" aria-label="Back" title="Back"><svg class="icon" aria-hidden="true"><use href="#icon-back"></use></svg></button><button id="forward" class="caption-button" type="button" aria-label="Forward" title="Forward"><svg class="icon" aria-hidden="true"><use href="#icon-forward"></use></svg></button><button id="sidebar" type="button" class="caption-button" aria-controls="rail" aria-expanded="true" aria-label="Hide sidebar" title="Hide sidebar"><svg class="icon" aria-hidden="true"><use href="#icon-sidebar"></use></svg></button></div>
+  <div class="caption-group"><button id="back" class="caption-button" type="button" aria-label="Back" title="Back"><svg class="icon" aria-hidden="true"><use href="#icon-back"></use></svg></button><button id="forward" class="caption-button" type="button" aria-label="Forward" title="Forward"><svg class="icon" aria-hidden="true"><use href="#icon-forward"></use></svg></button>
+   <div id="menu-bar" role="menubar" aria-label="Application menu">
+    <button type="button" role="menuitem" data-menu="File" aria-haspopup="menu" aria-expanded="false">File</button>
+    <button type="button" role="menuitem" data-menu="Edit" aria-haspopup="menu" aria-expanded="false" tabindex="-1">Edit</button>
+    <button type="button" role="menuitem" data-menu="View" aria-haspopup="menu" aria-expanded="false" tabindex="-1">View</button>
+    <button type="button" role="menuitem" data-menu="Help" aria-haspopup="menu" aria-expanded="false" tabindex="-1">Help</button>
+   </div>
+  </div>
   <div class="caption-group native"><button id="minimize" class="caption-button" type="button" aria-label="Minimize" title="Minimize"><svg class="icon" aria-hidden="true"><use href="#icon-minimize"></use></svg></button><button id="maximize" class="caption-button" type="button" aria-label="Maximize" title="Maximize"><svg class="icon" aria-hidden="true"><use href="#icon-maximize"></use></svg></button><button id="close" class="caption-button" type="button" aria-label="Close window" title="Close window"><svg class="icon" aria-hidden="true"><use href="#icon-close"></use></svg></button></div>
 </header>
+<div id="command-menu" role="menu" popover="manual"></div>
 <div class="shell">
+ <div id="workspace">
  <aside id="rail" aria-label="Sidebar">
-  <div class="brand"><img src="../../resources/icon.png" alt="" width="56" height="56"><span>CoCo</span></div>
-  <nav aria-label="Workspace"><button type="button" data-page="chat"><svg class="icon" aria-hidden="true"><use href="#icon-chat"></use></svg><span>Chat</span></button><button type="button" data-page="tasks"><svg class="icon" aria-hidden="true"><use href="#icon-tasks"></use></svg><span>Tasks</span></button><button type="button" data-page="places"><svg class="icon" aria-hidden="true"><use href="#icon-places"></use></svg><span>Places &amp; routes</span></button><button type="button" data-page="devices"><svg class="icon" aria-hidden="true"><use href="#icon-devices"></use></svg><span>Devices<small>No device connected</small></span></button></nav>
+  <div class="brand">
+   <img src="../../resources/icon.png" alt="" width="56" height="56"><span>CoCo</span>
+   <button id="sidebar" type="button" aria-controls="workspace-nav" aria-expanded="true" aria-label="Collapse sidebar" title="Collapse sidebar"><svg class="icon" aria-hidden="true"><use href="#icon-collapse"></use></svg></button>
+  </div>
+  <nav id="workspace-nav" aria-label="Workspace">
+   <button type="button" data-page="chat" title="Chat"><svg class="icon" aria-hidden="true"><use href="#icon-chat"></use></svg><span>Chat</span></button>
+   <button type="button" data-page="tasks" title="Tasks"><svg class="icon" aria-hidden="true"><use href="#icon-tasks"></use></svg><span>Tasks</span></button>
+   <button type="button" data-page="maps" title="Maps"><svg class="icon" aria-hidden="true"><use href="#icon-map"></use></svg><span>Maps</span></button>
+   <button type="button" data-page="devices" title="Devices"><svg class="icon" aria-hidden="true"><use href="#icon-devices"></use></svg><span>Devices</span></button>
+  </nav>
+  <section id="conversations" aria-label="Conversations">
+   <div class="history-heading"><h2 id="history-title">Conversations</h2>
+    <button type="button" id="new-chat" class="icon-action" aria-label="New chat" title="New chat" ><svg class="icon" aria-hidden="true"><use href="#icon-plus"></use></svg></button>
+    <button type="button" id="archive-filter" class="icon-action" aria-label="Show archived conversations" title="Show archived conversations" aria-pressed="false"><svg class="icon" aria-hidden="true"><use href="#icon-archive"></use></svg></button>
+    <button type="button" id="browse-chats" class="icon-action" aria-label="Browse conversations" title="Browse conversations" ><svg class="icon" aria-hidden="true"><use href="#icon-chat"></use></svg></button>
+   </div>
+   <div id="history-list"></div>
+  </section>
+  <div id="history-menu" popover><button id="pin-chat" type="button"></button><button id="archive-chat" type="button"></button></div>
   <button id="profile" class="profile" type="button"><span class="avatar"><svg class="icon" aria-hidden="true"><use href="#icon-profile"></use></svg></span><span id="display-name">Local user</span></button>
  </aside>
  <main id="main" tabindex="-1">
-  <section data-view="chat" class="meeting-page" aria-labelledby="meeting-heading">
-   <div class="meeting-content">
-    <div class="robot"><img src="../../resources/robot.png" alt="CoCo" width="1536" height="1024"></div>
-    <h1 id="meeting-heading">Set a meeting point</h1>
-    <p class="subtitle">Milk tea pickup · Haining International Campus</p>
-    <form id="meeting-form" class="composer"><label for="meeting" title="Meeting point"><svg class="icon" aria-hidden="true"><use href="#icon-places"></use></svg><span class="sr-only">Meeting point</span></label>
-     <input id="meeting" type="text" value="Library entrance" maxlength="160" required autocomplete="off" spellcheck="false" aria-describedby="meeting-error">
-     <button id="voice" class="voice" type="button" aria-label="Voice input" title="Voice input"><svg class="icon" aria-hidden="true"><use href="#icon-mic"></use></svg></button>
-     <button class="primary" type="submit">Save meeting point</button>
+  <section data-view="chat" class="chat-page" aria-labelledby="chat-title">
+   <header class="chat-header">
+    <h1 id="chat-title">Chat</h1>
+    <span class="chat-location"><svg class="icon" aria-hidden="true"><use href="#icon-places"></use></svg>Haining International Campus</span>
+    <button type="button" id="share-chat" class="icon-action" aria-label="Share conversation" title="Share conversation" disabled><svg class="icon" aria-hidden="true"><use href="#icon-share"></use></svg></button>
+    <span id="chat-panel-slot"><button type="button" id="toggle-panel" class="icon-action" aria-label="Open side panel" title="Open side panel" aria-expanded="false" aria-controls="activity-panel"><svg class="icon" aria-hidden="true"><use href="#icon-panel"></use></svg></button></span>
+   </header>
+   <div class="chat-workarea">
+   <div class="chat-body">
+    <div id="welcome" class="chat-column">
+     <img class="chat-robot" src="../../resources/robot.png" alt="" width="1536" height="1024">
+     <h2>How can I help on campus?</h2>
+     <div class="suggestions" role="group" aria-label="Suggested messages">
+      <button type="button" data-suggestion="pickup"><svg class="icon" aria-hidden="true"><use href="#icon-drink"></use></svg><span><strong>Plan a pickup</strong><small>Review your milk tea pickup</small></span></button>
+      <button type="button" data-suggestion="place"><svg class="icon" aria-hidden="true"><use href="#icon-places"></use></svg><span><strong>Meeting point</strong><small>Check where to meet</small></span></button>
+      <button type="button" data-suggestion="device"><svg class="icon" aria-hidden="true"><use href="#icon-devices"></use></svg><span><strong>Device status</strong><small>See connected devices</small></span></button>
+     </div>
+    </div>
+    <div id="transcript" role="log" aria-label="Conversation" class="chat-column" tabindex="0" hidden></div>
+    <form id="chat-form" class="chat-column composer">
+     <div id="draft-image" class="draft-image" hidden><img alt="Attached image"><button type="button" id="remove-image" aria-label="Remove image" title="Remove image">×</button></div>
+     <textarea id="message" aria-label="Message CoCo" placeholder="Ask CoCo about your campus pickup…" rows="2"></textarea>
+     <div class="composer-toolbar">
+      <button type="button" id="tools" class="round-tool" aria-label="Chat tools" title="Chat tools" popovertarget="chat-tools"><svg class="icon" aria-hidden="true"><use href="#icon-plus"></use></svg></button>
+      <button type="button" id="mode-chip" popovertarget="chat-tools" title="Change chat mode">Campus pickup</button>
+      <span id="voice-status" role="status"></span>
+      <button id="voice" class="round-tool" type="button" aria-label="Voice input" title="Voice input"><svg class="icon" aria-hidden="true"><use href="#icon-mic"></use></svg></button>
+      <button id="send" class="round-tool" type="submit" aria-label="Send message" title="Send message" disabled><svg class="icon" aria-hidden="true"><use href="#icon-send"></use></svg></button>
+     </div>
+     <p class="form-error" id="attachment-error" role="alert"></p>
     </form>
-    <p class="form-error" id="meeting-error" role="alert"></p>
    </div>
+
+   </div>
+   <div id="chat-tools" popover role="group" aria-label="Chat tools">
+    <div class="menu-heading">Chat mode</div>
+    <button type="button" data-mode="pickup" aria-pressed="true"><svg class="icon" aria-hidden="true"><use href="#icon-drink"></use></svg>Campus pickup</button>
+    <button type="button" data-mode="place" aria-pressed="false"><svg class="icon" aria-hidden="true"><use href="#icon-places"></use></svg>Meeting point</button>
+    <button type="button" data-mode="device" aria-pressed="false"><svg class="icon" aria-hidden="true"><use href="#icon-devices"></use></svg>Device status</button>
+    <div class="menu-actions">
+     <button type="button" data-edit-meeting><svg class="icon" aria-hidden="true"><use href="#icon-edit"></use></svg>Edit meeting point</button>
+     <button type="button" id="attach-image"><svg class="icon" aria-hidden="true"><use href="#icon-image"></use></svg>Attach an image</button>
+    </div>
+   </div>
+   <input type="file" id="image-file" accept="image/png,image/jpeg,image/webp" hidden>
+   <template id="chat-turn"><article class="turn">
+    <img class="user-image" alt="" hidden>
+    <p class="user-message" dir="auto"></p><p class="reply" dir="auto"></p>
+    <button type="button" class="reply-card"><span class="card-icon"><svg class="icon" aria-hidden="true"><use href="#icon-tasks"></use></svg></span><span class="card-content"><strong></strong><small></small></span><svg class="icon" aria-hidden="true"><use href="#icon-next"></use></svg></button>
+    <div class="reply-actions">
+     <button type="button" class="icon-action" aria-label="Copy reply" title="Copy reply" data-action="copy"><svg class="icon" aria-hidden="true"><use href="#icon-copy"></use></svg></button>
+     <button type="button" class="icon-action" aria-label="Share reply" title="Share reply" data-action="share"><svg class="icon" aria-hidden="true"><use href="#icon-share"></use></svg></button>
+     <button type="button" class="icon-action" aria-label="Read aloud" title="Read aloud" data-action="read"><svg class="icon" aria-hidden="true"><use href="#icon-listen"></use></svg></button>
+     <button type="button" class="icon-action" aria-label="Rate reply" title="Rate reply" data-action="rate"><svg class="icon" aria-hidden="true"><use href="#icon-rate"></use></svg></button>
+     <button type="button" class="turn-time" popovertarget="reply-time"><time></time></button>
+    </div>
+   </article></template>
+   <div id="reply-time" popover></div>
   </section>
-  <section data-view="tasks" class="detail-page" hidden aria-labelledby="tasks-heading">
-   <div class="detail-content">
-    <span class="page-icon"><svg class="icon" aria-hidden="true"><use href="#icon-tasks"></use></svg></span><h1 id="tasks-heading" tabindex="-1">Tasks</h1>
-    <article class="detail-card"><h2>Milk tea pickup</h2>
-     <p>Haining International Campus</p>
-     <dl><dt>Meeting point draft</dt><dd data-value="meeting"></dd></dl>
+  <section data-view="tasks" class="library-page" hidden aria-labelledby="tasks-heading">
+   <header class="library-heading"><h1 id="tasks-heading" tabindex="-1">Tasks</h1></header>
+   <div class="library-body"><h2>Task history</h2><div id="task-list"></div>
+    <details class="draft-card" open><summary>Current draft</summary><div><h3>Milk tea pickup</h3>
+     <p>Haining International Campus</p><dl><dt>Meeting point draft</dt><dd data-value="meeting"></dd></dl>
      <div class="actions"><button type="button" data-edit-meeting class="secondary">Edit meeting point</button><button id="order" type="button" class="secondary">Order on iPhone</button></div>
-    </article>
+    </div></details>
    </div>
   </section>
-  <section data-view="places" class="detail-page" hidden aria-labelledby="places-heading">
-   <div class="detail-content"><span class="page-icon"><svg class="icon" aria-hidden="true"><use href="#icon-places"></use></svg></span><h1 id="places-heading" tabindex="-1">Places &amp; routes</h1>
-    <article class="detail-card"><h2>Haining International Campus</h2>
-    <dl><dt>Pickup location</dt><dd>Not selected</dd><dt>Meeting point draft</dt><dd data-value="meeting"></dd></dl>
-    <button type="button" data-edit-meeting class="primary">Set meeting point</button></article>
-   </div>
+  <section data-view="maps" class="library-page" hidden aria-labelledby="maps-heading">
+   <header class="library-heading"><h1 id="maps-heading" tabindex="-1">Maps</h1><button type="button" id="add-map">Add map…</button></header>
+   <div class="library-body"><div id="map-list" class="map-list"></div><p id="map-error" role="status"></p></div>
+   <input type="file" id="map-file" accept="image/jpeg,image/png,image/webp" hidden>
   </section>
-  <section data-view="devices" class="detail-page" hidden aria-labelledby="devices-heading">
-   <div class="detail-content"><span class="page-icon"><svg class="icon" aria-hidden="true"><use href="#icon-devices"></use></svg></span><h1 id="devices-heading" tabindex="-1">Devices</h1>
-    <article class="detail-card"><h2>No device connected</h2></article>
-   </div>
+  <section data-view="devices" class="library-page" hidden aria-labelledby="devices-heading">
+   <header class="library-heading"><h1 id="devices-heading" tabindex="-1">Devices</h1><button type="button" id="refresh-devices">Refresh</button><button type="button" id="pair-device">Pair a device…</button></header>
+   <div class="library-body"><h2>Paired devices</h2><div id="device-list"></div><p id="device-status" role="status"></p></div>
   </section>
  </main>
+ </div>
+ <aside id="activity-panel" aria-label="Activity" hidden>
+  <header class="panel-heading"><svg class="icon activity-glyph" aria-hidden="true"><use href="#icon-activity"></use></svg><h2>Activity</h2>
+   <button id="switch-activity" type="button" class="icon-action" aria-label="Show phone" title="Show phone"><svg class="icon" aria-hidden="true"><use href="#icon-phone"></use></svg></button>
+   <button id="share-activity" type="button" class="icon-action" aria-label="Share activity" title="Share activity"><svg class="icon" aria-hidden="true"><use href="#icon-share"></use></svg></button>
+  </header>
+  <section id="map-view" aria-label="Map">
+   <div class="map-surface">
+    <div class="map-viewport" tabindex="0" aria-label="Campus map" aria-description="Scroll to zoom. Drag to pan. Use arrow keys to pan, plus and minus to zoom, and Home to recenter.">
+     <div class="map-sheet"><img src="haining-campus.webp" alt="Haining International Campus" draggable="false" width="2352" height="5376"><span id="run-location" role="img" aria-label="Active run location" hidden></span></div>
+    </div>
+    <button type="button" id="follow-run" class="map-button" aria-label="Follow active run" title="Follow active run" hidden><svg class="icon" aria-hidden="true"><use href="#icon-locate"></use></svg></button>
+    <button type="button" id="map-info" class="map-button" aria-label="Map information" title="Map information" popovertarget="map-licence"><span id="map-credit" hidden>© OpenStreetMap</span><svg class="icon" aria-hidden="true"><use href="#icon-info"></use></svg></button>
+    <div id="map-licence" popover>Map data © OpenStreetMap contributors.<br><button id="map-source" type="button">Open Data Commons Open Database License</button></div>
+   </div>
+   <div id="run-summary" role="status" hidden><strong id="run-name"></strong><span id="run-eta"></span><p id="run-detail"></p></div>
+  </section>
+  <section id="phone-view" aria-label="Phone activity" hidden>
+   <div class="phone-screen"><div class="phone-content"><svg class="icon" aria-hidden="true"><use href="#icon-phone"></use></svg>
+    <h3 id="phone-status">No phone connected</h3><ul id="phone-operations" hidden></ul>
+    <button type="button" id="panel-devices">View devices</button></div></div>
+  </section>
+ </aside>
 </div>
+<dialog id="saved-map-dialog" aria-labelledby="saved-map-title"><h2 id="saved-map-title"></h2><img id="saved-map-image" alt=""><div class="actions"><button type="button" data-dismiss class="secondary">Close</button><button type="button" id="remove-map" class="secondary">Remove from Maps</button></div></dialog>
+<dialog id="shortcuts-dialog" aria-labelledby="shortcuts-title"><h2 id="shortcuts-title">Keyboard shortcuts</h2><dl id="shortcut-list"></dl><button type="button" class="secondary" data-dismiss>Close</button></dialog>
+<dialog id="about-dialog" aria-labelledby="about-title"><h2 id="about-title">About CoCo</h2><p>CoCo for Windows</p><button type="button" class="secondary" data-dismiss>Close</button></dialog>
 <dialog id="meeting-dialog" aria-labelledby="preview-title"><h2 id="preview-title">Meeting point</h2><p class="preview-value" id="preview-value"></p><p>Haining International Campus</p><button type="button" class="primary" data-dismiss>Close</button></dialog>
-<dialog id="voice-dialog" aria-labelledby="voice-title"><h2 id="voice-title">Voice input</h2><button id="type-instead" class="primary">Type instead</button></dialog>
+<dialog id="edit-dialog" aria-labelledby="edit-title"><h2 id="edit-title">Edit meeting point</h2>
+ <form id="meeting-form"><label for="meeting">Meeting point</label><input id="meeting" type="text" value="Library entrance" maxlength="160" autocomplete="off" aria-describedby="meeting-error">
+  <p class="form-error" id="meeting-error" role="alert"></p>
+  <div class="actions"><button type="submit" class="primary">Save meeting point</button><button type="button" data-dismiss class="secondary">Cancel</button></div>
+ </form>
+</dialog>
 <dialog id="profile-dialog" aria-labelledby="profile-title"><h2 id="profile-title">Your profile</h2><p id="profile-name"></p><button type="button" class="primary" data-dismiss>Close</button></dialog>
 <dialog id="order-dialog" aria-labelledby="order-title"><h2 id="order-title">Order on iPhone</h2><p>Choose your drink and confirm payment in the merchant’s app on your iPhone.</p><button type="button" class="primary" data-dismiss>Close</button></dialog>
+<dialog id="share-dialog" aria-labelledby="share-title"><h2 id="share-title">Share conversation</h2>
+ <pre id="share-preview" tabindex="0"></pre><p id="share-status" role="status"></p>
+ <div class="actions"><button id="share-copy" class="primary" type="button">Copy text</button><button id="share-save" class="secondary" type="button">Save as text</button><button class="secondary" type="button" data-dismiss>Close</button></div>
+</dialog>
+<dialog id="rating-dialog" aria-labelledby="rating-title"><h2 id="rating-title">Rate reply</h2>
+ <div class="rating-options"><button type="button" data-rating="helpful">Helpful</button><button type="button" data-rating="unhelpful">Not helpful</button><button type="button" data-rating="">Clear rating</button></div>
+ <button class="secondary" type="button" data-dismiss>Close</button>
+</dialog>
+<div id="chat-notice" role="status"></div>
 </body></html>

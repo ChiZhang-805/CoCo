@@ -2,7 +2,9 @@
 
 const byId = id => document.getElementById(id);
 const meeting = byId('meeting');
-const pages = ['chat', 'tasks', 'places', 'devices'];
+let savedMeetingPoint = meeting.value;
+let meetingOpener;
+const pages = ['chat', 'tasks', 'maps', 'devices'];
 let history = ['chat'];
 let position = 0;
 
@@ -20,14 +22,14 @@ function showPage(focus = true) {
     if (link.dataset.page === page) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
   });
-  document.querySelectorAll('[data-value="meeting"]').forEach(node => {
-    node.textContent = meeting.value.trim() || 'Not set';
-  });
+  document.querySelectorAll('[data-value="meeting"]').forEach(node => node.textContent = savedMeetingPoint);
+  if (page !== 'chat') byId('chat-tools').hidePopover();
   byId('back').disabled = position === 0;
   byId('forward').disabled = position === history.length - 1;
   byId('main').scrollTop = 0;
+  document.dispatchEvent(new Event('workspace-page'));
   if (focus) {
-    if (page === 'chat') focusMeeting();
+    if (page === 'chat') byId('message').focus();
     else byId(page + '-heading').focus();
   }
 }
@@ -51,20 +53,38 @@ function travel(offset) {
 document.querySelectorAll('[data-page]').forEach(button => {
   button.addEventListener('click', () => navigate(button.dataset.page));
 });
+function editMeetingPoint(opener) {
+  meetingOpener = byId('chat-tools').contains(opener) ? byId('tools') : opener;
+  byId('chat-tools').hidePopover();
+  meeting.value = savedMeetingPoint;
+  meeting.removeAttribute('aria-invalid');
+  byId('meeting-error').textContent = '';
+  byId('edit-dialog').showModal();
+  focusMeeting();
+}
 document.querySelectorAll('[data-edit-meeting]').forEach(button => {
-  button.addEventListener('click', () => navigate('chat'));
+  button.addEventListener('click', () => editMeetingPoint(button));
 });
 byId('back').addEventListener('click', () => travel(-1));
 byId('forward').addEventListener('click', () => travel(1));
-byId('sidebar').addEventListener('click', () => {
-  const rail = byId('rail');
-  rail.hidden = !rail.hidden;
-  document.querySelector('.shell').classList.toggle('collapsed', rail.hidden);
-  const toggle = byId('sidebar');
-  toggle.setAttribute('aria-expanded', String(!rail.hidden));
-  toggle.setAttribute('aria-label', rail.hidden ? 'Show sidebar' : 'Hide sidebar');
-  toggle.title = toggle.getAttribute('aria-label');
+const sidebarToggle = byId('sidebar');
+let sidebarPreference;
+
+function updateSidebar() {
+  const expanded = sidebarPreference ?? (byId('workspace').clientWidth > 530);
+  byId('rail').classList.toggle('compact', !expanded);
+  sidebarToggle.setAttribute('aria-expanded', String(expanded));
+  sidebarToggle.title = expanded ? 'Collapse sidebar' : 'Expand sidebar';
+  sidebarToggle.setAttribute('aria-label', sidebarToggle.title);
+  sidebarToggle.querySelector('use').setAttribute('href', expanded ? '#icon-collapse' : '#icon-expand');
+}
+
+sidebarToggle.addEventListener('click', () => {
+  sidebarPreference = sidebarToggle.getAttribute('aria-expanded') !== 'true';
+  updateSidebar();
 });
+new ResizeObserver(updateSidebar).observe(byId('workspace'));
+updateSidebar();
 function setMaximized(value) {
   const button = byId('maximize');
   const label = value ? 'Restore' : 'Maximize';
@@ -104,16 +124,19 @@ byId('meeting-form').addEventListener('submit', event => {
     return;
   }
   byId('preview-value').textContent = value;
+  savedMeetingPoint = value;
+  document.querySelectorAll('[data-value="meeting"]').forEach(node => node.textContent = value);
+  byId('edit-dialog').close();
   byId('meeting-dialog').showModal();
 });
+for (const id of ['edit-dialog', 'meeting-dialog']) {
+  byId(id).addEventListener('close', () => {
+    if (!document.querySelector('dialog[open]')) meetingOpener?.focus();
+  });
+}
 meeting.addEventListener('input', () => {
   meeting.removeAttribute('aria-invalid');
   byId('meeting-error').textContent = '';
-});
-byId('voice').addEventListener('click', () => byId('voice-dialog').showModal());
-byId('type-instead').addEventListener('click', () => {
-  byId('voice-dialog').close();
-  focusMeeting();
 });
 byId('order').addEventListener('click', () => byId('order-dialog').showModal());
 byId('profile').addEventListener('click', () => byId('profile-dialog').showModal());
