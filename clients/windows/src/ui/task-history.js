@@ -58,7 +58,26 @@ function actionButton(text, icon, onClick) {
   button.onclick = onClick;
   return button;
 }
-function inspectTask(run, mode, focus = false) {
+function hideTaskPanel() {
+  byId('task-inspector').hidden = true;
+  activityPanel.classList.remove('task-panel');
+  activityPanel.setAttribute('aria-label', 'Activity');
+  stopRoutePlayback();
+  displayedTrack = null;
+  for (const row of byId('task-list').querySelectorAll('.selected')) {
+    row.classList.remove('selected');
+    row.querySelectorAll('[aria-pressed]').forEach(action => action.setAttribute('aria-pressed', 'false'));
+  }
+}
+function openTaskPanel(run, mode) {
+  byId('task-inspector').hidden = false;
+  activityPanel.classList.add('task-panel');
+  activityPanel.setAttribute('aria-label', 'Task history');
+  inspectTask(run, mode);
+  return openPanel(true, byId('inspect-heading'));
+}
+byId('close-task-panel').onclick = () => openPanel(false);
+function inspectTask(run, mode) {
   inspectedId = run.id;
   inspectorMode = mode;
   const track = trackOf(run);
@@ -74,7 +93,7 @@ function inspectTask(run, mode, focus = false) {
   byId('inspect-details').onclick = () => inspectTask(run, 'details');
   byId('inspect-route').onclick = () => inspectTask(run, 'route');
   for (const row of byId('task-list').children) {
-    const selected = row.dataset.id === run.id;
+    const selected = row.dataset.id === run.id && !byId('task-inspector').hidden;
     row.classList.toggle('selected', selected);
     for (const action of row.querySelectorAll('[data-mode]')) {
       action.setAttribute('aria-pressed', String(selected && action.dataset.mode === mode));
@@ -96,7 +115,6 @@ function inspectTask(run, mode, focus = false) {
     stopRoutePlayback();
     displayedTrack = null;
   }
-  if (focus) byId('inspect-heading').focus();
 }
 async function rerunTask(original, button) {
   button.disabled = true;
@@ -109,10 +127,11 @@ async function rerunTask(original, button) {
     inspectedId = run.id;
     inspectorMode = trackOf(run) ? 'route' : 'details';
     drawTasks();
-    byId('inspect-heading').focus();
+    if (history[position] !== 'tasks') return;
+    await openTaskPanel(run, inspectorMode);
     byId('task-feedback').classList.add('sr-only');
     byId('task-feedback').textContent = 'Demo started: ' + run.name;
-    if (inspectorMode === 'route' && !matchMedia('(prefers-reduced-motion: reduce)').matches) playRoute();
+    if (wantPanel && !byId('task-inspector').hidden && inspectedId === run.id && inspectorMode === 'route' && !matchMedia('(prefers-reduced-motion: reduce)').matches) playRoute();
   } catch {
     const feedback = byId('task-feedback');
     feedback.classList.remove('sr-only');
@@ -142,9 +161,9 @@ function drawTasks() {
     meta.append(element('span', recordedEvents(run).at(-1).status), element('time', taskClock.format(run.updated)));
     caption.append(element('strong', run.name), meta);
     const actions = element('div', '', 'run-actions');
-    const details = actionButton('View task details', 'tasks', () => inspectTask(run, 'details', true));
+    const details = actionButton('View task details', 'tasks', () => openTaskPanel(run, 'details'));
     details.dataset.mode = 'details';
-    const route = actionButton('View flight path', 'route', () => inspectTask(run, 'route', true));
+    const route = actionButton('View flight path', 'route', () => openTaskPanel(run, 'route'));
     route.dataset.mode = 'route';
     if (!trackOf(run)) { route.disabled = true; route.title = 'No mapped flight path'; }
     const rerun = actionButton('Run again in demo', 'run-again', () => rerunTask(run, rerun));
@@ -154,7 +173,7 @@ function drawTasks() {
     list.append(row);
   }
   const selected = runs.find(run => run.id === inspectedId) || runs[0];
-  inspectTask(selected, inspectorMode);
+  if (!byId('task-inspector').hidden) inspectTask(selected, inspectorMode);
   restoreFocus?.focus({ preventScroll: true });
   clearTimeout(nextCompletion);
   const pending = runs.map(run => run.previewEnds).filter(end => end > now);

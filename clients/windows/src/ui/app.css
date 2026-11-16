@@ -242,7 +242,8 @@ dialog .preview-value { color: var(--text); font-size: 22px; margin-bottom: 0; }
 .history-item span, .chat-header h1 { white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
 .history-item .icon { width: 13px; height: 13px; }
 .row-more { width: 26px; height: 32px; margin-right: 3px; }
-#history-menu { position: fixed; inset: auto; top: anchor(bottom); left: anchor(left); position-try-fallbacks: flip-block, flip-inline; padding: 5px; margin: 2px; border: 1px solid var(--line); border-radius: 11px; background: white; box-shadow: 0 8px 28px #36263d22; }
+.row-more[data-menu-anchor] { anchor-name: --conversation-options; }
+#history-menu { position: fixed; position-anchor: --conversation-options; inset: auto; top: anchor(bottom); left: anchor(left); position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline; position-visibility: anchors-visible; padding: 5px; margin: 4px 0; border: 1px solid var(--line); border-radius: 11px; background: white; box-shadow: 0 8px 28px #36263d22; }
 #history-menu button { display: block; width: 100%; padding: 9px 12px; text-align: left; border-radius: 7px; font-size: 14px; }
 #history-menu button:hover { background: var(--lavender); }
 #browse-chats { display: none; }
@@ -337,23 +338,20 @@ dialog .preview-value { color: var(--text); font-size: 22px; margin-bottom: 0; }
 #command-menu hr { margin: 4px -1px; border: 0; border-top: 1px solid var(--line); }
 #command-menu kbd { color: var(--muted); font: inherit; }
 .library-page { min-height: 100%; }
-.library-page[data-view="maps"] { container: maps / inline-size; display: flex; flex-direction: column; }
+#main:has([data-view="maps"]:not([hidden])) { overflow: clip; }
+.library-page[data-view="maps"] { container: maps / size; height: 100%; min-height: 0; display: grid; grid-template-rows: auto minmax(0,1fr) auto; }
 .library-heading { position: sticky; top: 0; z-index: 1; background: white; min-height: var(--header-height); display: flex; align-items: center; gap: 6px; padding: 4px 24px; border-bottom: 1px solid var(--line); }
 .library-heading h1 { flex: 1; font-size: 19px; }
 .library-body { width: min(100%,900px); margin-inline: auto; padding: clamp(16px,4vw,46px); }
 .library-body h2 { font-size: 20px; margin: 0 0 12px; }
 .empty-list, #device-status { color: var(--muted); font-size: 14px; }
-.draft-card { border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; margin-top: 24px; }
-.draft-card summary { cursor: pointer; font: 750 15px Nunito,"Segoe UI",sans-serif; }
-.draft-card h3 { font: 800 18px Nunito,"Segoe UI",sans-serif; margin: 14px 0 4px; }
-.draft-card p { margin: 0; color: var(--muted); }
 .device-row { border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 12px; padding: 14px 2px; font-size: 14px; flex-wrap: wrap; }
 .device-row div { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .device-row .icon, .map-card .icon { width: 18px; height: 18px; color: var(--accent); }
 .device-row small { font-size: 12px; color: var(--muted); }
 .device-row small { display: block; }
 .library-page[data-view="tasks"] { container: tasks / inline-size; }
-.tasks-body { max-width: 1420px; margin: 0 auto; padding: clamp(18px,3.5cqw,48px); display: grid; grid-template-columns: minmax(0,1.35fr) minmax(305px,1fr); align-items: start; gap: clamp(20px,3cqw,44px); }
+.tasks-body { max-width: 1000px; margin: 0 auto; padding: clamp(18px,3.5cqw,48px); }
 .tasks-body h2 { font: 800 21px/1.35 Nunito,"Segoe UI",sans-serif; margin: 0; }
 #task-list { margin-top: 14px; }
 .run-row { display: grid; grid-template-columns: 40px minmax(0,1fr) auto; align-items: center; gap: 12px; padding: 15px 10px; border-bottom: 1px solid var(--line); }
@@ -366,15 +364,14 @@ dialog .preview-value { color: var(--text); font-size: 22px; margin-bottom: 0; }
 .demo-tag { font: 750 12px/1.4 Nunito,"Segoe UI",sans-serif; color: var(--accent); background: var(--lavender); border-radius: 5px; padding: 1px 6px; }
 .run-actions .icon-action { width: 32px; height: 36px; }
 .run-actions .icon-action:last-child { color: var(--accent); }
-.draft-card { position: relative; }
-.draft-card dl { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 14px; margin: 10px 0 2px; }
-.draft-card .actions { position: absolute; top: 8px; right: 12px; gap: 2px; margin: 0; }
-#task-inspector { min-width: 0; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
-.inspect-header { padding: 12px 15px; display: flex; gap: 3px; align-items: center; border-bottom: 1px solid var(--line); }
-.inspect-header h2 { flex: 1; font-size: 18px; scroll-margin-top: calc(var(--header-height) + 16px); }
+#activity-panel.task-panel > :not(#task-inspector) { display: none; }
+#task-inspector { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow-y: auto; background: white; }
+.inspect-header { min-height: var(--header-height); flex: none; padding: 4px 14px 4px 18px; display: flex; gap: 3px; align-items: center; border-bottom: 1px solid var(--line); }
+.inspect-header h2 { flex: 1; margin: 0; font: 800 19px/1.15 Nunito,"Segoe UI",sans-serif; }
 .inspect-caption { padding: 16px; flex-wrap: wrap; gap: 8px; }
-.route-map { position: relative; margin-inline: 12px; border-radius: 12px; overflow: hidden; background: var(--shell); }
-#route-drawing { display: block; width: 100%; height: clamp(200px,25cqw,335px); }
+#task-route { flex: 1 0 180px; display: flex; flex-direction: column; }
+.route-map { flex: 1; min-height: 110px; position: relative; margin-inline: 10px; border-radius: 12px; overflow: hidden; background: var(--shell); }
+#route-drawing { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
 #route-casing, #route-line { stroke: white; stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; }
 #route-line { stroke: var(--accent); stroke-width: 3.5; }
 #route-start, #route-end { fill: white; stroke: var(--accent); stroke-width: 4; }
@@ -392,29 +389,26 @@ dialog .preview-value { color: var(--text); font-size: 22px; margin-bottom: 0; }
 .task-timeline { list-style: none; padding: 0; margin: 0 16px 18px; border-top: 1px solid var(--line); }
 .task-timeline li { display: flex; justify-content: space-between; gap: 10px; padding-top: 10px; font-size: 14px; }
 .task-timeline time { color: var(--muted); font-size: 13px; }
-@container tasks (max-width: 820px) {
- .tasks-body { grid-template-columns: minmax(0,1fr); max-width: 660px; }
-}
 @container tasks (max-width: 430px) {
  .tasks-body { padding: 14px; }
  .run-row { grid-template-columns: 1fr auto; gap: 4px; }
  .run-glyph { display: none; }
 }
-.library-page[data-view="maps"] .library-body { flex: 1; width: 100%; padding: 18px 24px 8px; }
-.map-list { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; align-content: start; }
-@container maps (max-width: 830px) { .map-list { grid-template-columns: repeat(2,minmax(0,1fr)); } }
-@container maps (max-width: 565px) { .map-list { grid-template-columns: minmax(0,1fr); } }
-.map-card { min-width: 0; padding: 0; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; text-align: left; }
-.map-card img { display: block; width: 100%; height: clamp(85px,16vh,152px); object-fit: cover; }
-@container maps (min-width: 831px) {
- .map-card img { height: clamp(70px,calc(25vh - 107px),152px); }
-}
-.map-card span { display: flex; align-items: center; gap: 8px; height: 42px; padding: 0 12px; }
+.library-page[data-view="maps"] .library-body { display: grid; grid-template-rows: minmax(0,1fr) auto; min-height: 0; width: 100%; padding: 14px 24px 6px; }
+.map-list { --map-columns: 4; --map-rows: 3; display: grid; grid-template-columns: repeat(var(--map-columns),minmax(0,1fr)); grid-template-rows: repeat(var(--map-rows),minmax(0,1fr)); gap: clamp(6px,1.5cqh,16px); }
+@container maps (max-width: 1090px) { .map-list { --map-columns: 3; } }
+@container maps (max-width: 830px) { .map-list { --map-columns: 2; } }
+@container maps (max-width: 565px) { .map-list { --map-columns: 1; } }
+@container maps (max-height: 305px) { .map-list { --map-rows: 2; } }
+@container maps (max-height: 220px) { .map-list { --map-rows: 1; } }
+.map-card { display: grid; grid-template-rows: minmax(0,1fr) auto; min-width: 0; min-height: 0; padding: 0; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; text-align: left; }
+.map-card img { display: block; min-height: 0; width: 100%; height: 100%; object-fit: cover; }
+.map-card span { display: flex; align-items: center; gap: 8px; height: clamp(30px,6cqh,42px); padding: 0 12px; }
 .map-card .icon { flex: none; width: 16px; height: 16px; }
 .map-card strong { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font: 750 14px Nunito,"Segoe UI",sans-serif; }
 .map-card:hover { border-color: #b7a3c5; }
-#map-pages { position: sticky; bottom: 0; display: flex; justify-content: center; flex-wrap: wrap; gap: 4px; background: white; padding: 6px 16px 9px; }
-#map-pages button { min-width: 34px; height: 34px; border-radius: 9px; color: var(--muted); font: 750 15px Nunito,"Segoe UI",sans-serif; }
+#map-pages { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 6px 8px 9px; }
+#map-pages button { min-width: clamp(24px,5cqw,34px); height: 34px; border-radius: 9px; color: var(--muted); font: 750 15px Nunito,"Segoe UI",sans-serif; }
 #map-pages button:hover, #map-pages button[aria-current] { background: var(--lavender); color: var(--accent); }
 #map-pages button[aria-current] { box-shadow: inset 0 0 0 1px var(--accent); }
 #map-library-credits { position: fixed; inset: auto; right: anchor(right); top: calc(anchor(bottom) + 4px); position-try-fallbacks: flip-block, flip-inline; margin: 0; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--line); box-shadow: 0 4px 16px #30203920; font-size: 13px; }

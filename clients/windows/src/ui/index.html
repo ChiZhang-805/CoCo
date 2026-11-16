@@ -141,6 +141,7 @@
     <button type="button" data-mode="device" aria-pressed="false"><svg class="icon" aria-hidden="true"><use href="#icon-devices"></use></svg>Device status</button>
     <div class="menu-actions">
      <button type="button" data-edit-meeting><svg class="icon" aria-hidden="true"><use href="#icon-edit"></use></svg>Edit meeting point</button>
+     <button type="button" id="order"><svg class="icon" aria-hidden="true"><use href="#icon-phone"></use></svg>Order on iPhone</button>
      <button type="button" id="attach-image"><svg class="icon" aria-hidden="true"><use href="#icon-image"></use></svg>Attach an image</button>
     </div>
    </div>
@@ -161,26 +162,8 @@
   </section>
   <section data-view="tasks" class="library-page" hidden aria-labelledby="tasks-heading">
    <header class="library-heading"><h1 id="tasks-heading" tabindex="-1">Tasks</h1></header>
-   <div class="tasks-body"><div class="history-column"><h2>Task history</h2><div id="task-list" role="list" aria-label="Task history"></div>
-    <details class="draft-card" open><summary>Current draft</summary><div><h3>Milk tea pickup</h3>
-     <p>Haining International Campus</p><dl><dt>Meeting point draft</dt><dd data-value="meeting"></dd></dl>
-     <div class="actions"><button type="button" data-edit-meeting class="icon-action" aria-label="Edit meeting point" title="Edit meeting point"><svg class="icon" aria-hidden="true"><use href="#icon-edit"></use></svg></button><button id="order" type="button" class="icon-action" aria-label="Order on iPhone" title="Order on iPhone"><svg class="icon" aria-hidden="true"><use href="#icon-phone"></use></svg></button></div>
-    </div></details>
-   </div><section id="task-inspector" aria-labelledby="inspect-heading">
-    <header class="inspect-header"><h2 id="inspect-heading" tabindex="-1">Flight path</h2><button id="inspect-details" class="icon-action" aria-label="Task details" title="Task details"><svg class="icon" aria-hidden="true"><use href="#icon-tasks"></use></svg></button><button id="inspect-route" class="icon-action" aria-label="Flight path" title="Flight path"><svg class="icon" aria-hidden="true"><use href="#icon-route"></use></svg></button></header>
-    <div class="inspect-caption"><span class="demo-tag" id="inspect-demo">Demo</span><strong id="inspect-name"></strong></div>
-    <div id="task-details" hidden><p id="task-instruction"></p><ol id="task-events" class="task-timeline"></ol></div>
-    <div id="task-route" hidden>
-     <div class="route-map"><svg id="route-drawing" role="img" aria-labelledby="route-description"><title id="route-description"></title>
-      <image id="route-basemap" href="haining-campus.webp" width="1000" height="2285.714"/>
-      <path id="route-casing" fill="none" vector-effect="non-scaling-stroke"/><path id="route-line" fill="none" vector-effect="non-scaling-stroke"/>
-      <g id="route-start"><circle r="9"/></g><g id="route-end"><rect x="-8" y="-8" width="16" height="16" rx="3"/></g>
-      <g id="route-cursor"><circle r="12"/><path d="m0-6 5 10-5-2-5 2Z"/></g>
-     </svg><button id="route-credits" class="map-button" popovertarget="map-library-credits" aria-label="Map credits" title="Map credits"><svg class="icon" aria-hidden="true"><use href="#icon-info"></use></svg></button></div>
-     <div class="route-controls"><button id="play-route" class="icon-action" aria-label="Play route" title="Play route"><svg class="icon" aria-hidden="true"><use href="#icon-play"></use></svg></button><input id="route-progress" type="range" min="0" max="1000" value="0" aria-label="Route playback position"><output id="route-time" for="route-progress"></output></div>
-     <div class="route-stops"><span id="origin-stop"></span><span id="destination-stop"></span></div>
-    </div>
-   </section></div><p class="sr-only" id="task-feedback" role="status"></p>
+   <div class="tasks-body"><h2>Task history</h2><div id="task-list" role="list" aria-label="Task history"></div></div>
+   <p class="sr-only" id="task-feedback" role="status"></p>
   </section>
   <section data-view="maps" class="library-page" hidden aria-labelledby="maps-heading">
    <header class="library-heading">
@@ -223,6 +206,21 @@
     <h3 id="phone-status">No phone connected</h3><ul id="phone-operations" hidden></ul>
     <button type="button" id="panel-devices">View devices</button></div></div>
   </section>
+  <section id="task-inspector" hidden aria-labelledby="inspect-heading">
+    <header class="inspect-header"><h2 id="inspect-heading" tabindex="-1">Flight path</h2><button id="inspect-details" class="icon-action" aria-label="Task details" title="Task details"><svg class="icon" aria-hidden="true"><use href="#icon-tasks"></use></svg></button><button id="inspect-route" class="icon-action" aria-label="Flight path" title="Flight path"><svg class="icon" aria-hidden="true"><use href="#icon-route"></use></svg></button><button type="button" id="close-task-panel" class="icon-action" aria-label="Close task panel" title="Close task panel"><svg class="icon" aria-hidden="true"><use href="#icon-close"></use></svg></button></header>
+    <div class="inspect-caption"><span class="demo-tag" id="inspect-demo">Demo</span><strong id="inspect-name"></strong></div>
+    <div id="task-details" hidden><p id="task-instruction"></p><ol id="task-events" class="task-timeline"></ol></div>
+    <div id="task-route" hidden>
+     <div class="route-map"><svg id="route-drawing" role="img" aria-labelledby="route-description"><title id="route-description"></title>
+      <image id="route-basemap" href="haining-campus.webp" width="1000" height="2285.714"/>
+      <path id="route-casing" fill="none" vector-effect="non-scaling-stroke"/><path id="route-line" fill="none" vector-effect="non-scaling-stroke"/>
+      <g id="route-start"><circle r="9"/></g><g id="route-end"><rect x="-8" y="-8" width="16" height="16" rx="3"/></g>
+      <g id="route-cursor"><circle r="12"/><path d="m0-6 5 10-5-2-5 2Z"/></g>
+     </svg><button id="route-credits" class="map-button" popovertarget="map-library-credits" aria-label="Map credits" title="Map credits"><svg class="icon" aria-hidden="true"><use href="#icon-info"></use></svg></button></div>
+     <div class="route-controls"><button id="play-route" class="icon-action" aria-label="Play route" title="Play route"><svg class="icon" aria-hidden="true"><use href="#icon-play"></use></svg></button><input id="route-progress" type="range" min="0" max="1000" value="0" aria-label="Route playback position"><output id="route-time" for="route-progress"></output></div>
+     <div class="route-stops"><span id="origin-stop"></span><span id="destination-stop"></span></div>
+    </div>
+   </section>
  </aside>
 </div>
 <div id="map-library-credits" popover><strong>Map credits</strong><br>© OpenStreetMap contributors<br><button type="button" id="library-map-source">Open data licence</button></div>

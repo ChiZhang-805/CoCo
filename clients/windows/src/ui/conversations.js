@@ -81,6 +81,8 @@ function createIcon(name) {
 }
 function renderHistory() {
   const list = byId('history-list');
+  const menu = byId('history-menu');
+  if (menu.matches(':popover-open')) menu.hidePopover();
   list.replaceChildren();
   byId('history-title').textContent = viewingArchive ? 'Archived' : 'Conversations';
   const filter = byId('archive-filter');
@@ -109,8 +111,14 @@ function renderHistory() {
     more.title = 'Options for ' + chat.title;
     more.setAttribute('aria-label', more.title);
     more.append(createIcon('more'));
-    more.popoverTargetElement = byId('history-menu');
+    more.popoverTargetElement = menu;
     more.onclick = () => {
+      const previous = list.querySelector('[data-menu-anchor]');
+      if (previous !== more) {
+        if (menu.matches(':popover-open')) menu.hidePopover();
+        previous?.removeAttribute('data-menu-anchor');
+        more.setAttribute('data-menu-anchor', '');
+      }
       menuChatId = chat.id;
       byId('pin-chat').textContent = chat.pinned ? 'Unpin conversation' : 'Pin conversation';
       byId('pin-chat').hidden = chat.archived;

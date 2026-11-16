@@ -11,7 +11,7 @@ let showPhone = false;
 let creditShown = false;
 function collapseCredit() { byId('map-credit').hidden = true; }
 function showMapCredit() {
-  if (creditShown || showPhone || activityPanel.hidden) return;
+  if (creditShown || showPhone || activityPanel.hidden || !byId('task-inspector').hidden) return;
   creditShown = true;
   byId('map-credit').hidden = false;
   setTimeout(collapseCredit, 5000);
@@ -25,15 +25,23 @@ function applyPanelLayout({ open, width }) {
   setButton(panelToggle, open ? 'Close side panel' : 'Open side panel', 'panel');
   showMapCredit();
 }
-async function openPanel(open) {
+async function openPanel(open, focusTarget = panelToggle) {
   wantPanel = open;
+  if (!open) hideTaskPanel();
   const layout = await window.coco.activityPanel(open);
   if (wantPanel !== open) return;
   applyPanelLayout(layout);
-  panelToggle.focus({ preventScroll: true });
+  focusTarget?.focus({ preventScroll: true });
 }
 window.coco.onActivityLayout(applyPanelLayout);
-panelToggle.onclick = () => openPanel(!wantPanel);
+function toggleWorkspacePanel() {
+  if (!wantPanel && history[position] === 'tasks') {
+    const run = taskRuns.get(inspectedId) || sampleHistory.find(item => item.id === inspectedId) || sampleHistory[0];
+    return openTaskPanel(run, trackOf(run) ? inspectorMode : 'details');
+  }
+  return openPanel(!wantPanel);
+}
+panelToggle.onclick = toggleWorkspacePanel;
 viewSwitch.onclick = () => {
   showPhone = !showPhone;
   byId('map-view').hidden = showPhone;
@@ -42,13 +50,14 @@ viewSwitch.onclick = () => {
   showMapCredit();
 };
 function panelKey(event) {
-  if (event.key === 'Escape' && wantPanel && !byId('map-licence').matches(':popover-open')) openPanel(false);
+  if (event.key === 'Escape' && wantPanel && !document.querySelector(':popover-open')) openPanel(false);
 }
 activityPanel.addEventListener('keydown', panelKey);
 panelToggle.addEventListener('keydown', panelKey);
 document.addEventListener('workspace-page', () => {
   const header = document.querySelector('[data-view]:not([hidden]) > header');
   header.append(byId('chat-panel-slot'));
+  if (history[position] !== 'tasks' && !byId('task-inspector').hidden) openPanel(false, null);
 });
 byId('share-activity').onclick = () => {
   const title = showPhone ? 'Phone activity' : campus.name;

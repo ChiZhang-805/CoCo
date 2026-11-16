@@ -39,6 +39,33 @@ test('Windows desktop', async t => {
   const button = name => page.getByRole('button', { name, exact: true });
   const meeting = page.getByRole('textbox', { name: 'Meeting point' });
   const message = page.getByRole('textbox', { name: 'Message CoCo' });
+  async function checkConversationMenu(title) {
+    const trigger = await button('Options for ' + title).boundingBox();
+    const menu = await page.locator('#history-menu').boundingBox();
+    const below = menu.y - trigger.y - trigger.height;
+    const above = trigger.y - menu.y - menu.height;
+    assert.ok([below, above].some(gap => gap >= -1 && gap <= 6), JSON.stringify({trigger, menu}));
+    assert.ok(Math.abs(menu.x-trigger.x) <= 1);
+    const fits = await page.locator('#history-menu').evaluate(node => {
+      const rect = node.getBoundingClientRect();
+      return rect.left >= 0 && rect.top >= 0 && rect.bottom <= innerHeight && rect.right <= innerWidth;
+    });
+    assert.ok(fits);
+  }
+  async function checkMapsFit() {
+    const fits = await page.evaluate(() => {
+      const main = document.querySelector('main');
+      const header = document.querySelector('#maps-heading').closest('header').getBoundingClientRect();
+      const pager = document.querySelector('#map-pages').getBoundingClientRect();
+      const cards = Array.from(document.querySelectorAll('.map-card'));
+      return main.scrollHeight === main.clientHeight && main.scrollWidth === main.clientWidth &&
+        pager.bottom <= main.getBoundingClientRect().bottom && cards.length > 0 && cards.every(card => {
+          const box = card.getBoundingClientRect();
+          return box.top >= header.bottom && box.bottom <= pager.top && card.querySelector('img').clientHeight > 0;
+        });
+    });
+    assert.ok(fits, 'Map cards, captions and page controls must fit without scrolling');
+  }
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
   await page.locator('#display-name').filter({ hasText: 'Alex Chen' }).waitFor();
@@ -144,6 +171,8 @@ test('Windows desktop', async t => {
     const cardBounds = await card.boundingBox();
     assert.ok(Math.abs(cardBounds.x - composerBounds.x) < 2 && Math.abs(cardBounds.width - composerBounds.width) < 2);
     await card.click();
+    await page.getByRole('dialog', { name: 'Edit meeting point' }).waitFor();
+    await page.keyboard.press('Escape');
     await button('Chat').click();
     assert.equal(await log.locator('.turn').count(), 1);
     await button('New chat').click();
@@ -181,6 +210,7 @@ test('Windows desktop', async t => {
     assert.equal(await readFile(exportPath, 'utf8'), text);
     await button('Close').click();
     await button('Options for ' + title).click();
+    await checkConversationMenu(title);
     await button('Pin conversation').click();
     await page.locator('.history-item .icon').waitFor();
     await button('New chat').click();
@@ -188,7 +218,13 @@ test('Windows desktop', async t => {
     await message.press('Enter');
     await button('Device connection').waitFor();
     assert.equal(await page.locator('.history-item').first().innerText(), title);
+    await button('Options for Device connection').press('Enter');
+    await checkConversationMenu('Device connection');
+    await button('Options for ' + title).click();
+    await checkConversationMenu(title);
+    await page.keyboard.press('Escape');
     await button('Options for Device connection').click();
+    await checkConversationMenu('Device connection');
     await button('Archive conversation').click();
     await page.getByRole('heading', { name: 'How can I help on campus?' }).waitFor();
     assert.equal(await button('Device connection').count(), 0);
@@ -333,6 +369,7 @@ test('Windows desktop', async t => {
     try {
       await message.fill('Meet here');
       await message.evaluate(el => el.setSelectionRange(5,9));
+      await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].focus());
       await button('Voice input').click();
       await page.locator('#voice-status').filter({ hasText: 'Listening' }).waitFor();
       await button('Stop dictation').click();
@@ -358,10 +395,13 @@ test('Windows desktop', async t => {
   await t.test('sidebar pages, draft continuity, history, profile and iPhone handoff', async () => {
     await button('Tasks').click();
     await page.getByRole('heading', { name: 'Tasks', exact: true }).waitFor();
-    assert.equal(await page.locator('[data-view="tasks"] dd').textContent(), 'Library north entrance');
+    assert.equal(await page.getByText('Current draft', {exact: true}).count(), 0);
+    await button('Chat').click();
+    await button('Chat tools').click();
     await button('Order on iPhone').click();
     await page.getByRole('dialog', { name: 'Order on iPhone' }).waitFor();
     await button('Close').click();
+    await button('Tasks').click();
     await button('Maps').click();
     await button('Back').click();
     await page.getByRole('heading', { name: 'Tasks', exact: true }).waitFor();
@@ -402,6 +442,8 @@ test('Windows desktop', async t => {
   });
   await t.test('task instructions, demo reruns and historical flight playback', async () => {
     await button('Tasks').click();
+    assert.equal(await page.locator('#activity-panel').isHidden(), true);
+    assert.equal(await page.locator('main #route-drawing').count(), 0);
     const tracked = page.locator('.run-row').filter({ hasText: 'Campus pickup' });
     await tracked.getByRole('button', { name: 'View task details' }).click();
     assert.deepEqual(await page.locator('.task-timeline li span').allTextContents(), ['Running', 'Ended']);
@@ -410,6 +452,12 @@ test('Windows desktop', async t => {
     await page.getByRole('img', {name: /^Recorded flight path/}).waitFor();
     const sample = page.locator('[data-id="example-tea"]');
     await sample.getByRole('button', {name: 'View flight path'}).press('Enter');
+    await page.getByRole('img', {name: /Demo flight path from Student Center to Library entrance/}).waitFor();
+    assert.equal(await page.locator('#activity-panel #route-drawing').isVisible(), true);
+    await button('Close task panel').click();
+    await button('Open side panel').waitFor();
+    assert.equal(await page.locator('#task-list').isVisible(), true);
+    await button('Open side panel').click();
     await page.getByRole('img', {name: /Demo flight path from Student Center to Library entrance/}).waitFor();
     await button('Play route').click();
     await page.waitForFunction(() => +document.querySelector('#route-progress').value > 60);
@@ -433,6 +481,10 @@ test('Windows desktop', async t => {
   });
   await t.test('numbered campus map pages and local map imports', async () => {
     await button('Maps').click();
+    await button('Open side panel').waitFor();
+    if (await button('Maximize').isVisible()) await button('Maximize').click();
+    await waitWindowState(app, 'isMaximized', true);
+    await page.waitForFunction(() => document.querySelectorAll('.map-card').length === 12);
     await button('Haining International Campus').waitFor();
     const grid = await page.locator('.map-card').evaluateAll(cards => cards.map(card => {
       const {x,y,bottom} = card.getBoundingClientRect();
@@ -440,11 +492,12 @@ test('Windows desktop', async t => {
       return { x,y,bottom, fits: label.scrollWidth <= label.clientWidth, lines: getComputedStyle(label).whiteSpace };
     }));
     assert.equal(grid.length, 12);
-    assert.equal(new Set(grid.map(card => card.x)).size, 3);
-    assert.equal(new Set(grid.map(card => card.y)).size, 4);
+    assert.equal(new Set(grid.map(card => card.x)).size, 4);
+    assert.equal(new Set(grid.map(card => card.y)).size, 3);
+    await checkMapsFit();
     assert.ok(grid.every(card => card.fits && card.lines === 'nowrap'));
-    const mapTitle = await page.locator('#maps-heading').boundingBox();
-    assert.ok(Math.abs(grid[0].x - mapTitle.x) < 2);
+    assert.ok(await page.evaluate(() => Math.abs(document.querySelector('.map-card').getBoundingClientRect().x -
+      document.querySelector('#maps-heading').getBoundingClientRect().x) < 2));
     assert.ok(grid.at(-1).bottom <= await page.locator('main').evaluate(el => el.getBoundingClientRect().bottom));
     if (process.env.COCO_MAPS_GRID_SCREENSHOT_PATH) await page.screenshot({ path: process.env.COCO_MAPS_GRID_SCREENSHOT_PATH });
     const covers = await page.locator('.map-card img').evaluateAll(images => images.map(image => image.src));
@@ -456,10 +509,12 @@ test('Windows desktop', async t => {
     await page.keyboard.press('Escape');
     const allCovers = new Set(covers);
     for (let n = 2; n <= 4; n++) {
+      await page.waitForFunction(() => document.querySelector('#activity-panel').hidden && document.querySelectorAll('.map-card').length === 12);
       await button('Page ' + n).press('Enter');
       assert.equal(await button('Page ' + n).getAttribute('aria-current'), 'page');
       const images = page.locator('.map-card img');
       assert.equal(await images.count(), 12);
+      await checkMapsFit();
       for (const url of await images.evaluateAll(imgs => Promise.all(imgs.map(async img => {
         await img.decode();
         return img.src;
@@ -473,8 +528,9 @@ test('Windows desktop', async t => {
     assert.equal(allCovers.size, 48);
     if (process.env.COCO_MAP_PAGES_SCREENSHOT_PATH) await page.screenshot({ path: process.env.COCO_MAP_PAGES_SCREENSHOT_PATH });
     await button('Page 1').click();
-    for (const card of await page.locator('.map-card').all()) {
-      const label = await card.getAttribute('title');
+    const firstPageNames = await page.locator('.map-card').evaluateAll(cards => cards.map(card => card.title));
+    for (const label of firstPageNames) {
+      const card = button(label);
       const cover = await card.locator('img').getAttribute('src');
       await card.click();
       await button('Close side panel').waitFor();
@@ -482,10 +538,16 @@ test('Windows desktop', async t => {
       await map.evaluate(image => image.decode());
       assert.equal(await map.getAttribute('src'), cover);
       assert.equal(await map.getAttribute('alt'), label);
+      if (label !== firstPageNames.at(-1)) {
+        await button('Close side panel').click();
+        await page.waitForFunction(() => document.querySelectorAll('.map-card').length === 12 && document.querySelector('#activity-panel').hidden);
+      }
     }
     await button('Share activity').click();
     assert.match(await page.locator('#share-preview').innerText(), /Yungu Campus[\s\S]*30\.33600\/120\.03200/);
     await page.keyboard.press('Escape');
+    await button('Close side panel').click();
+    await button('Page 1').click();
     await button('Haining International Campus').click();
     await page.getByRole('heading', {name: 'Maps', exact: true}).waitFor();
     if (process.env.COCO_MAPS_PANEL_SCREENSHOT_PATH) await page.screenshot({ path: process.env.COCO_MAPS_PANEL_SCREENSHOT_PATH });
@@ -568,8 +630,16 @@ test('Windows desktop', async t => {
     await page.getByRole('img', {name: /from Residences to Library entrance/}).waitFor();
     assert.equal(await page.locator('main').evaluate(n => n.scrollWidth <= n.clientWidth + 1), true);
     await button('Maps').click();
+    await page.waitForFunction(() => window.innerWidth <= 620 && document.querySelector('#activity-panel').hidden);
+    await button('Page 1').click();
     await button('Page 3').click();
     assert.equal(await page.locator('main').evaluate(n => n.scrollWidth <= n.clientWidth + 1), true);
+    assert.equal(await page.locator('.map-card').evaluateAll(cards => new Set(cards.map(c => c.getBoundingClientRect().y)).size), 3);
+    await checkMapsFit();
+    await page.evaluate(() => window.coco.control('zoom-in'));
+    await page.waitForFunction(() => window.innerWidth < 610);
+    await checkMapsFit();
+    await page.evaluate(() => window.coco.control('zoom-reset'));
     await button('Chat').click();
     await page.keyboard.press('Control+=');
     await page.waitForFunction(() => window.innerWidth < 610);
@@ -603,12 +673,17 @@ test('Windows desktop', async t => {
     await fresh.getByRole('button', { name: 'Show archived conversations' }).click();
     await fresh.getByRole('button', { name: 'Device connection', exact: true }).waitFor();
     await fresh.getByRole('button', { name: 'Tasks', exact: true }).click();
-    assert.equal(await fresh.locator('[data-view="tasks"] dd').textContent(), 'Library entrance');
+    assert.equal(await fresh.locator('#activity-panel').isHidden(), true);
     await fresh.locator('.run-row').filter({ hasText: 'Campus pickup' }).waitFor();
     assert.equal(await fresh.locator('.run-row').filter({hasText: 'Milk tea pickup'}).count(), 2);
     await fresh.locator('.run-row').filter({hasText: 'Milk tea pickup'}).first().getByRole('button', {name:'View task details'}).click();
     await fresh.locator('#task-events').getByText('Completed').waitFor();
     await fresh.getByRole('button', { name: 'Maps', exact: true }).click();
+    await fresh.getByRole('button', { name: 'Open side panel', exact: true }).waitFor();
+    if (await fresh.getByRole('button', { name: 'Maximize', exact: true }).isVisible()) {
+      await fresh.getByRole('button', { name: 'Maximize', exact: true }).click();
+    }
+    await fresh.waitForFunction(() => document.querySelectorAll('#map-pages button').length === 5);
     await fresh.getByRole('button', { name: 'Page 5', exact: true }).click();
     await fresh.getByRole('button', { name: 'Campus sketch', exact: true }).waitFor();
     await fresh.getByRole('button', { name: 'Campus sketch', exact: true }).click();

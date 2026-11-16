@@ -119,27 +119,34 @@ byId('refresh-devices').onclick = refreshDevices;
 window.addEventListener('focus', () => { if (history[position] === 'devices') refreshDevices(); });
 
 let mapVersion = 0;
-let mapPage = 1;
+let mapAnchor = 0;
 let libraryMaps = campusMaps;
-const mapsPerPage = 12;
+let mapsPerPage = 12;
+const mapList = byId('map-list');
+function mapPageSize() {
+  const style = getComputedStyle(mapList);
+  return Number(style.getPropertyValue('--map-rows')) * Number(style.getPropertyValue('--map-columns'));
+}
 async function drawMaps(revealId) {
   const version = ++mapVersion;
   const maps = await storedList('maps');
   if (version !== mapVersion) return;
   libraryMaps = [...campusMaps, ...maps.sort((a,b) => b.added - a.added)];
   const index = revealId ? libraryMaps.findIndex(entry => entry.id === revealId) : -1;
-  if (index >= 0) mapPage = Math.floor(index / mapsPerPage) + 1;
+  if (index >= 0) mapAnchor = index;
   renderMapPage();
 }
 function renderMapPage() {
+  if (!mapList.clientWidth) return;
+  mapsPerPage = mapPageSize();
+  mapAnchor = Math.min(mapAnchor, libraryMaps.length - 1);
+  const mapPage = Math.floor(mapAnchor / mapsPerPage) + 1;
   const pages = Math.ceil(libraryMaps.length / mapsPerPage);
-  mapPage = Math.min(mapPage, pages);
-  const list = byId('map-list');
-  list.replaceChildren();
+  mapList.replaceChildren();
   for (const url of mapUrls.values()) URL.revokeObjectURL(url);
   mapUrls.clear();
   const start = (mapPage - 1) * mapsPerPage;
-  for (const entry of libraryMaps.slice(start, start + mapsPerPage)) {
+  for (const [offset, entry] of libraryMaps.slice(start, start + mapsPerPage).entries()) {
     const card = element('button', '', 'map-card');
     card.type = 'button';
     card.title = entry.name;
@@ -151,6 +158,7 @@ function renderMapPage() {
     caption.append(createIcon('map'),element('strong',entry.name),createIcon('next'));
     card.append(img,caption);
     card.onclick = () => {
+      mapAnchor = start + offset;
       if (entry.image) {
         selectCampusMap(entry);
         if (showPhone) viewSwitch.click();
@@ -162,17 +170,22 @@ function renderMapPage() {
         byId('saved-map-dialog').showModal();
       }
     };
-    list.append(card);
+    mapList.append(card);
   }
   const pager = byId('map-pages');
   pager.replaceChildren();
+  const middle = Math.max(3, Math.min(mapPage, pages - 2));
   for (let n = 1; n <= pages; n++) {
+    if (pages > 7 && n > 1 && n < pages && Math.abs(n - middle) > 1) {
+      if (n === 2 || n === pages - 1) pager.append(element('span', '…'));
+      continue;
+    }
     const button = element('button', String(n));
     button.type = 'button';
     button.setAttribute('aria-label', 'Page ' + n);
     if (n === mapPage) button.setAttribute('aria-current', 'page');
     button.onclick = () => {
-      mapPage = n;
+      mapAnchor = (n - 1) * mapPageSize();
       renderMapPage();
       byId('main').scrollTop = 0;
       pager.querySelector('[aria-current]').focus({ preventScroll: true });
@@ -180,6 +193,9 @@ function renderMapPage() {
     pager.append(button);
   }
 }
+new ResizeObserver(() => {
+  if (mapList.clientWidth && mapPageSize() !== mapsPerPage) renderMapPage();
+}).observe(mapList);
 byId('library-map-source').onclick = () => window.coco.openMapLicence();
 byId('add-map').onclick = () => byId('map-file').click();
 byId('map-file').onchange = async event => {

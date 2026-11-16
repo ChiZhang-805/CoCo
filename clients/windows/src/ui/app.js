@@ -22,7 +22,6 @@ function showPage(focus = true) {
     if (link.dataset.page === page) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
   });
-  document.querySelectorAll('[data-value="meeting"]').forEach(node => node.textContent = savedMeetingPoint);
   if (page !== 'chat') byId('chat-tools').hidePopover();
   byId('back').disabled = position === 0;
   byId('forward').disabled = position === history.length - 1;
@@ -126,7 +125,6 @@ byId('meeting-form').addEventListener('submit', event => {
   }
   byId('preview-value').textContent = value;
   savedMeetingPoint = value;
-  document.querySelectorAll('[data-value="meeting"]').forEach(node => node.textContent = value);
   byId('edit-dialog').close();
   byId('meeting-dialog').showModal();
 });
@@ -139,7 +137,10 @@ meeting.addEventListener('input', () => {
   meeting.removeAttribute('aria-invalid');
   byId('meeting-error').textContent = '';
 });
-byId('order').addEventListener('click', () => byId('order-dialog').showModal());
+byId('order').addEventListener('click', () => {
+  byId('chat-tools').hidePopover();
+  byId('order-dialog').showModal();
+});
 byId('profile').addEventListener('click', () => byId('profile-dialog').showModal());
 document.querySelectorAll('[data-dismiss]').forEach(button => {
   button.addEventListener('click', () => button.closest('dialog').close());

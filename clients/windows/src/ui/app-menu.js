@@ -25,7 +25,7 @@ const groups = {
     ['Back','Alt+Left',() => travel(-1),() => !byId('back').disabled],
     ['Forward','Alt+Right',() => travel(1),() => !byId('forward').disabled], null,
     ['Toggle sidebar','Ctrl+B',() => sidebarToggle.click()],
-    ['Toggle Activity','Ctrl+Shift+A',() => openPanel(!wantPanel)], null,
+    ['Toggle Activity','Ctrl+Shift+A',toggleWorkspacePanel], null,
     ['Zoom in','Ctrl++',() => window.coco.control('zoom-in')],
     ['Zoom out','Ctrl+−',() => window.coco.control('zoom-out')],
     ['Actual size','Ctrl+0',() => window.coco.control('zoom-reset')]

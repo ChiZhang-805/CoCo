@@ -106,7 +106,7 @@ byId('remove-image').addEventListener('click', () => {
 function localReply(text) {
   const place = { text: 'Your meeting point is ' + savedMeetingPoint + ' on Haining International Campus.', card: 'Meeting point', detail: savedMeetingPoint, target: 'edit' };
   const device = { text: deviceReply(), card: 'Devices', detail: 'Paired devices', target: 'devices' };
-  const pickup = { text: 'Your current task is a milk tea pickup on Haining International Campus. The meeting point is ' + savedMeetingPoint + '. You can review the draft in Tasks and complete the order on your iPhone.', card: 'Milk tea pickup', detail: 'Task draft · ' + savedMeetingPoint, target: 'tasks' };
+  const pickup = { text: 'Your milk tea pickup is set for ' + savedMeetingPoint + ' on Haining International Campus. You can confirm the order on your iPhone.', card: 'Milk tea pickup', detail: 'Meeting point · ' + savedMeetingPoint, target: 'edit' };
   if (!text) return { text: 'You can add a note about the pickup or meeting point below.' };
   if (/\b(devices?|connected|connection)\b/i.test(text)) return device;
   if (/\b(meet|meeting|location|where)\b/i.test(text)) return place;
@@ -147,8 +147,9 @@ function appendTurn(record) {
   if (reply.card) {
     card.querySelector('strong').textContent = reply.card;
     card.querySelector('small').textContent = reply.detail;
-    card.querySelector('.card-icon use').setAttribute('href', '#icon-' + ({ edit: 'places', devices: 'devices', tasks: 'tasks' }[reply.target]));
-    card.onclick = () => reply.target === 'edit' ? editMeetingPoint(card) : navigate(reply.target);
+    const target = reply.target === 'tasks' && reply.detail?.startsWith('Task draft ·') ? 'edit' : reply.target;
+    card.querySelector('.card-icon use').setAttribute('href', '#icon-' + ({ edit: 'places', devices: 'devices', tasks: 'tasks' }[target]));
+    card.onclick = () => target === 'edit' ? editMeetingPoint(card) : navigate(target);
   }
   const time = turn.querySelector('time');
   const date = new Date(created);
