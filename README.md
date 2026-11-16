@@ -1,12 +1,12 @@
-# COCO
+# CoCo
 
-COCO 是面向个人使用的空中智能机器人助手：通过自然语言理解目标，由 AI Agent 协调线上操作与实体机器人的自主飞行、感知和机械操作。客户端包括 Windows、Ubuntu、macOS 三款桌面软件和一款 iOS App。目标称呼与唤醒方式为 `COCO` / `Hey COCO`。
+CoCo 是面向个人使用的空中智能机器人助手：通过自然语言理解目标，由 AI Agent 协调线上操作与实体机器人的自主飞行、感知和机械操作。客户端包括 Windows、Ubuntu、macOS 三款桌面软件和一款 iOS App。目标称呼与唤醒方式为 `CoCo` / `Hey CoCo`。
 
 **产品语言**　四端仅提供英文版，暂不提供中文版或语言切换。设计稿、实现和验收使用英文文案，覆盖界面标签、无障碍名称、任务状态、错误反馈及应用提供的权限说明。
 
-**开源许可**　COCO 的原创软件在 [ChiZhang-805/COCO](https://github.com/ChiZhang-805/COCO) 发布，采用 [Apache-2.0](LICENSE)。第三方材料遵循各自的许可。
+**开源许可**　CoCo 的原创软件在 [ChiZhang-805/CoCo](https://github.com/ChiZhang-805/CoCo) 发布，采用 [Apache-2.0](LICENSE)。第三方材料遵循各自的许可。
 
-**目标体验：**“COCO, get me a boba tea and meet me at the library.” 系统在用户授权、商户配合和现实执行条件满足时，完成下单、路线规划、取货、携带、交付与反馈。这是产品目标，不是已实现能力。
+**目标体验：**“CoCo, get me a boba tea and meet me at the library.” 系统在用户授权、商户配合和现实执行条件满足时，完成下单、路线规划、取货、携带、交付与反馈。这是产品目标，不是已实现能力。
 
 ## 系统范围
 
@@ -86,7 +86,7 @@ COCO 是面向个人使用的空中智能机器人助手：通过自然语言理
 
 必须区分**电影成片、概念画和字标**，不要把整部电影概括成单一水彩画风。
 
-| 层面 | 官方图像观察 | COCO 的应用方式 |
+| 层面 | 官方图像观察 | CoCo 的应用方式 |
 | --- | --- | --- |
 | 角色与空间 | R1/R2：立体体积、柔和轮廓、暖冷光照与纵深 | 原创机器人插画采用简化的立体或 2.5D 表现；暖橙内光配紫蓝阴影 |
 | 概念插画 | R4：松动线稿、透明色块、纸面留白 | 仅用于需要的欢迎图、空状态或轻量插画；不把纸纹铺到表格和控制面板 |
@@ -99,7 +99,7 @@ COCO 是面向个人使用的空中智能机器人助手：通过自然语言理
 
 避免全屏持续粒子、到处发光的边框、彩虹渐变卡片、每个模块一种亮色、装饰字体正文，以及为了展示主题而建立无功能页面。功能界面保持简洁，电影气质主要由配色关系、局部插画和少量柔光承载。
 
-机器人、App 图标与产品字标采用原创设计；不把官方剧照、角色、电影 Logo 或音乐直接作为产品资产。`COCO` 是本项目名称，不表示与电影出品方存在关联或已获得名称、商标和素材授权。
+机器人、App 图标与产品字标采用原创设计；不把官方剧照、角色、电影 Logo 或音乐直接作为产品资产。`CoCo` 是本项目名称，不表示与电影出品方存在关联或已获得名称、商标和素材授权。
 
 ## 开发规范
 
@@ -131,7 +131,7 @@ COCO 是面向个人使用的空中智能机器人助手：通过自然语言理
 以下是目标目录。每个目录随第一份有用途的文件建立。四个客户端各自拥有可独立调用的构建入口；共用任务逻辑集中维护，部署方式由具体实现决定。
 
 ```text
-COCO/
+CoCo/
 ├── README.md
 ├── LICENSE
 ├── CHANGELOG.md
@@ -196,13 +196,13 @@ COCO/
 
 | 聊天框 | 主责范围 |
 | --- | --- |
-| Windows 桌面软件 | `clients/windows/` 的开发、构建、打包和 Windows 验收 |
-| Ubuntu 桌面软件 | `clients/ubuntu/` 的开发、构建、打包和 Ubuntu 桌面验收 |
-| macOS 桌面软件 | `clients/macos/` 的开发、构建、签名分发和 Mac 验收 |
-| iOS App | `clients/ios/` 的开发、构建、签名安装和 iPhone 验收 |
-| 软件核心与集成 | `core/`、`tests/integration/`，维护共用任务接口，协调四端共用的 `clients/assets/` 与整版联调 |
-| 导航与机载软件 | `robot/` 的构建、离线仿真和受控台架验证 |
-| 机体与抓取 | `hardware/` 的原创模型、制造文件、装配与机械验证 |
+| CoCo · Windows | `clients/windows/` 的开发、构建、打包和 Windows 验收 |
+| CoCo · Ubuntu | `clients/ubuntu/` 的开发、构建、打包和 Ubuntu 桌面验收 |
+| CoCo · macOS | `clients/macos/` 的开发、构建、签名分发和 Mac 验收 |
+| CoCo · iOS App | `clients/ios/` 的开发、构建、签名安装和 iPhone 验收 |
+| CoCo · Core Tech | `core/`、`tests/integration/`，维护共用任务接口，协调四端共用的 `clients/assets/` 与整版联调 |
+| CoCo · Flight Software | `robot/` 的构建、离线仿真和受控台架验证 |
+| CoCo · Hardware | `hardware/` 的原创模型、制造文件、装配与机械验证 |
 
 ## 文档与 Codex 使用
 
