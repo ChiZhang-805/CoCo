@@ -20,7 +20,7 @@ npm start
 
 在同一目录运行 `npm test` 可检查窗口交互，`npm run dist` 可在 `dist/` 生成 Windows x64 安装包。也可直接启动 `dist/win-unpacked/CoCo.exe`，此方式需要保留同目录的运行文件。
 
-Windows 的 Maps 可离线浏览校园地图。地图卡片与底部页码同屏显示，宽屏采用四列三行，窗口较小时自动调整每页数量。选中卡片后可在 Activity 中平移、缩放和分享地图位置。地图信息按钮提供数据署名和许可。底图由 [OpenStreetMap 贡献者](https://www.openstreetmap.org/copyright)的数据绘制，源数据使用 ODbL 1.0 许可。
+Windows 的 Maps 可离线浏览校园地图。地图卡片与底部页码同屏显示，宽屏采用四列三行，窗口较小时自动调整每页数量。卡片使用缩略图，Activity 和任务轨迹使用可缩放的矢量底图。选中卡片后可在 Activity 中平移、缩放和分享地图位置。地图信息按钮提供数据署名和许可。底图由 [OpenStreetMap 贡献者](https://www.openstreetmap.org/copyright)的数据绘制，源数据使用 ODbL 1.0 许可。
 
 Tasks 的历史记录保留指令和状态时间线。点击详情或轨迹图标会打开右侧栏，可回放示例路线，也可查看已收到且落在同一内置地图内的连续定位。重跑按钮用原指令创建独立的本地 `Demo` 记录，仅用于预览。编辑会合点和 iPhone 点单入口位于聊天工具菜单。
 

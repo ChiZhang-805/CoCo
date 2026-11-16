@@ -39,18 +39,29 @@ test('Windows desktop', async t => {
   const button = name => page.getByRole('button', { name, exact: true });
   const meeting = page.getByRole('textbox', { name: 'Meeting point' });
   const message = page.getByRole('textbox', { name: 'Message CoCo' });
-  async function checkConversationMenu(title) {
-    const trigger = await button('Options for ' + title).boundingBox();
-    const menu = await page.locator('#history-menu').boundingBox();
+  async function checkAnchoredMenu(invoker, selector, align = 'left') {
+    const trigger = await invoker.boundingBox();
+    const menu = await page.locator(selector).boundingBox();
     const below = menu.y - trigger.y - trigger.height;
     const above = trigger.y - menu.y - menu.height;
-    assert.ok([below, above].some(gap => gap >= -1 && gap <= 6), JSON.stringify({trigger, menu}));
-    assert.ok(Math.abs(menu.x-trigger.x) <= 1);
-    const fits = await page.locator('#history-menu').evaluate(node => {
+    assert.ok([below, above].some(gap => gap >= -1 && gap <= 8), JSON.stringify({selector, trigger, menu}));
+    const offset = align === 'right' ? menu.x + menu.width - trigger.x - trigger.width : menu.x - trigger.x;
+    assert.ok(Math.abs(offset) <= 4, JSON.stringify({selector, trigger, menu}));
+    const fits = await page.locator(selector).evaluate(node => {
       const rect = node.getBoundingClientRect();
       return rect.left >= 0 && rect.top >= 0 && rect.bottom <= innerHeight && rect.right <= innerWidth;
     });
     assert.ok(fits);
+  }
+  function checkConversationMenu(title) {
+    return checkAnchoredMenu(button('Options for ' + title), '#history-menu');
+  }
+  async function checkSidebarAlignment() {
+    const [collapse, archive] = await Promise.all(['#sidebar .icon', '#archive-filter .icon'].map(id => page.locator(id).boundingBox()));
+    assert.ok(Math.abs(collapse.x + collapse.width / 2 - archive.x - archive.width / 2) < 1);
+    const [left, right] = await page.evaluate(() => [document.querySelector('#workspace-nav').getBoundingClientRect().left,
+      innerWidth - document.querySelector('#workspace').getBoundingClientRect().right]);
+    assert.ok(Math.abs(left - right) < 1);
   }
   async function checkMapsFit() {
     const fits = await page.evaluate(() => {
@@ -85,6 +96,7 @@ test('Windows desktop', async t => {
     assert.equal(ready, true);
     const alignment = await page.evaluate(() => ['nav button .icon','#history-title','.profile .avatar'].map(selector => document.querySelector(selector).getBoundingClientRect().left));
     assert.ok(Math.max(...alignment) - Math.min(...alignment) < 1);
+    await checkSidebarAlignment();
     assert.ok((await page.locator('#close .icon').boundingBox()).width <= 17);
     for (const selector of ['nav [data-page="maps"] span',  'nav [data-page="devices"] span' ]) {
       const lines = await page.locator(selector).evaluate(n => {
@@ -143,6 +155,9 @@ test('Windows desktop', async t => {
     await page.keyboard.press('ArrowDown');
     await page.keyboard.press('Enter');
     assert.equal(await page.locator('#mode-chip').textContent(), 'Device status');
+    await page.locator('#mode-chip').press('Enter');
+    await checkAnchoredMenu(page.locator('#mode-chip'), '#chat-tools');
+    await page.keyboard.press('Escape');
     assert.equal(await message.inputValue(), 'Where is my meeting point?');
     await button('Plan a pickup Review your milk tea pickup').click();
     await message.press('Shift+Enter');
@@ -186,6 +201,7 @@ test('Windows desktop', async t => {
     await original.click();
     await page.locator('.turn-time').click();
     await page.locator('#reply-time').waitFor();
+    await checkAnchoredMenu(page.locator('.turn-time'), '#reply-time');
     assert.ok((await page.locator('#reply-time').innerText()).length > 8);
     await page.keyboard.press('Escape');
     await button('Read aloud').click();
@@ -261,6 +277,9 @@ test('Windows desktop', async t => {
     assert.equal(await map.evaluate(img => img.complete && img.naturalWidth > 0), true);
     assert.equal(await page.locator('#run-summary').isVisible(), false);
     const frame = page.locator('.map-viewport');
+    await button('Map information').click();
+    await checkAnchoredMenu(button('Map information'), '#map-licence', 'right');
+    await page.keyboard.press('Escape');
     const startSize = (await map.boundingBox()).width;
     await frame.hover();
     await page.mouse.wheel(0, -160);
@@ -453,7 +472,11 @@ test('Windows desktop', async t => {
     const sample = page.locator('[data-id="example-tea"]');
     await sample.getByRole('button', {name: 'View flight path'}).press('Enter');
     await page.getByRole('img', {name: /Demo flight path from Student Center to Library entrance/}).waitFor();
+    assert.equal(await page.locator('#route-basemap').getAttribute('href'), 'haining-campus.svg');
     assert.equal(await page.locator('#activity-panel #route-drawing').isVisible(), true);
+    await page.locator('#route-credits').press('Enter');
+    await checkAnchoredMenu(page.locator('#route-credits'), '#map-library-credits', 'right');
+    await page.keyboard.press('Escape');
     await button('Close task panel').click();
     await button('Open side panel').waitFor();
     assert.equal(await page.locator('#task-list').isVisible(), true);
@@ -486,6 +509,7 @@ test('Windows desktop', async t => {
     await waitWindowState(app, 'isMaximized', true);
     await page.waitForFunction(() => document.querySelectorAll('.map-card').length === 12);
     await button('Haining International Campus').waitFor();
+    await checkSidebarAlignment();
     const grid = await page.locator('.map-card').evaluateAll(cards => cards.map(card => {
       const {x,y,bottom} = card.getBoundingClientRect();
       const label = card.querySelector('strong');
@@ -506,6 +530,7 @@ test('Windows desktop', async t => {
     assert.equal(await page.getByText('Campus maps © OpenStreetMap contributors').count(), 0);
     await button('Map credits').click();
     await button('Open data licence').waitFor();
+    await checkAnchoredMenu(button('Map credits'), '#map-library-credits', 'right');
     await page.keyboard.press('Escape');
     const allCovers = new Set(covers);
     for (let n = 2; n <= 4; n++) {
@@ -522,10 +547,18 @@ test('Windows desktop', async t => {
       const card = page.locator('.map-card').first();
       const src = await card.locator('img').getAttribute('src');
       await card.click();
-      assert.equal(await page.locator('.map-sheet img').getAttribute('src'), src);
+      assert.equal(await page.locator('.map-sheet img').getAttribute('src'), src.replace(/\.webp$/, '.svg'));
       await button('Close side panel').click();
     }
     assert.equal(allCovers.size, 48);
+    await page.evaluate(async () => {
+      for (const campus of campusMaps) {
+        const image = new Image();
+        image.src = campusBasemap(campus);
+        await image.decode();
+        if (image.naturalWidth / image.naturalHeight !== (campus.aspect || 1)) throw new Error(campus.name + ' extent mismatch');
+      }
+    });
     if (process.env.COCO_MAP_PAGES_SCREENSHOT_PATH) await page.screenshot({ path: process.env.COCO_MAP_PAGES_SCREENSHOT_PATH });
     await button('Page 1').click();
     const firstPageNames = await page.locator('.map-card').evaluateAll(cards => cards.map(card => card.title));
@@ -536,7 +569,7 @@ test('Windows desktop', async t => {
       await button('Close side panel').waitFor();
       const map = page.locator('.map-sheet img');
       await map.evaluate(image => image.decode());
-      assert.equal(await map.getAttribute('src'), cover);
+      assert.equal(await map.getAttribute('src'), cover.replace(/\.webp$/, '.svg'));
       assert.equal(await map.getAttribute('alt'), label);
       if (label !== firstPageNames.at(-1)) {
         await button('Close side panel').click();

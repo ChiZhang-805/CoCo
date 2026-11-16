@@ -186,7 +186,7 @@ let routePoints = [];
 let timedSegments;
 function showTaskTrack(track, run) {
   const height = 1000 / (track.campus.aspect || 1);
-  byId('route-basemap').setAttribute('href', track.campus.image);
+  byId('route-basemap').setAttribute('href', campusBasemap(track.campus));
   byId('route-basemap').setAttribute('height', height);
   routePoints = track.path.map(([x,y]) => [x * 10, y * height / 100]);
   let length = 0;

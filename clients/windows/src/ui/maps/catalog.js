@@ -245,3 +245,7 @@ const campusMaps = [
     labels: [["Gesling Stadium",70.56,48.17],["Morewood E-Tower",44.2,28.84],["Hunt Library",41.97,71.73]]
   }
 ];
+
+function campusBasemap(campus) {
+  return campus.image.replace(/\.webp$/, '.svg');
+}

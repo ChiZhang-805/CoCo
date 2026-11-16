@@ -112,7 +112,7 @@ function selectCampusMap(next) {
   mapAspect = campus.aspect ?? 1;
   const image = mapSheet.querySelector('img');
   image.style.aspectRatio = String(mapAspect);
-  image.src = campus.image;
+  image.src = campusBasemap(campus);
   image.alt = campus.name;
   byId('activity-map-name').textContent = campus.name;
   drawMapLabels();
