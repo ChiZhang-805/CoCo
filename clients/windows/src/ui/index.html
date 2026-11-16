@@ -11,6 +11,7 @@
 <script src="chat.js" defer></script>
 <script src="chat-actions.js" defer></script>
 <script src="dictation.js" defer></script>
+<script src="maps/catalog.js" defer></script>
 <script src="workspace-library.js" defer></script>
 <script src="activity.js" defer></script>
 <script src="app-menu.js" defer></script>
@@ -35,6 +36,8 @@
 <symbol id="icon-next" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
 <symbol id="icon-check" viewBox="0 0 24 24"><path d="m4 12 5 5L20 6"/></symbol>
 <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="icon-refresh" viewBox="0 0 24 24"><path d="M20 10a8 8 0 1 0-1.5 7M20 4v6h-6"/></symbol>
+<symbol id="icon-pair" viewBox="0 0 24 24"><path d="m3 7 10 10-5 4V3l5 4L3 17m12-5h7m-3.5-3.5v7"/></symbol>
 <symbol id="icon-send" viewBox="0 0 24 24"><path d="M12 20V4m-7 7 7-7 7 7"/></symbol>
 <symbol id="icon-drink" viewBox="0 0 24 24"><path d="m5 7 2 14h10l2-14M4 7h16m-9 0 2-5h4"/><path d="M9 13c2-2 4 2 7 0"/></symbol>
 <symbol id="icon-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.4"/><path d="m3 17 5-5 4 4 4-5 5 6"/></symbol>
@@ -160,12 +163,19 @@
    </div>
   </section>
   <section data-view="maps" class="library-page" hidden aria-labelledby="maps-heading">
-   <header class="library-heading"><h1 id="maps-heading" tabindex="-1">Maps</h1><button type="button" id="add-map">Add map…</button></header>
-   <div class="library-body"><div id="map-list" class="map-list"></div><p id="map-error" role="status"></p></div>
+   <header class="library-heading">
+    <h1 id="maps-heading" tabindex="-1">Maps</h1>
+    <button type="button" id="add-map" class="icon-action" aria-label="Add map…" title="Add map…"><svg class="icon" aria-hidden="true"><use href="#icon-plus"></use></svg></button>
+   </header>
+   <div class="library-body"><div id="map-list" class="map-list"></div><button type="button" id="campus-map-credit">Campus maps © OpenStreetMap contributors</button><p id="map-error" role="status"></p></div>
    <input type="file" id="map-file" accept="image/jpeg,image/png,image/webp" hidden>
   </section>
   <section data-view="devices" class="library-page" hidden aria-labelledby="devices-heading">
-   <header class="library-heading"><h1 id="devices-heading" tabindex="-1">Devices</h1><button type="button" id="refresh-devices">Refresh</button><button type="button" id="pair-device">Pair a device…</button></header>
+   <header class="library-heading">
+    <h1 id="devices-heading" tabindex="-1">Devices</h1>
+    <button type="button" id="refresh-devices" class="icon-action" aria-label="Refresh" title="Refresh"><svg class="icon" aria-hidden="true"><use href="#icon-refresh"></use></svg></button>
+    <button type="button" id="pair-device" class="icon-action" aria-label="Pair a device…" title="Pair a device…"><svg class="icon" aria-hidden="true"><use href="#icon-pair"></use></svg></button>
+   </header>
    <div class="library-body"><h2>Paired devices</h2><div id="device-list"></div><p id="device-status" role="status"></p></div>
   </section>
  </main>
@@ -182,7 +192,7 @@
     </div>
     <button type="button" id="follow-run" class="map-button" aria-label="Follow active run" title="Follow active run" hidden><svg class="icon" aria-hidden="true"><use href="#icon-locate"></use></svg></button>
     <button type="button" id="map-info" class="map-button" aria-label="Map information" title="Map information" popovertarget="map-licence"><span id="map-credit" hidden>© OpenStreetMap</span><svg class="icon" aria-hidden="true"><use href="#icon-info"></use></svg></button>
-    <div id="map-licence" popover>Map data © OpenStreetMap contributors.<br><button id="map-source" type="button">Open Data Commons Open Database License</button></div>
+    <div id="map-licence" popover><strong id="activity-map-name">Haining International Campus</strong><br>Map data © OpenStreetMap contributors.<br><button id="map-source" type="button">Open Data Commons Open Database License</button></div>
    </div>
    <div id="run-summary" role="status" hidden><strong id="run-name"></strong><span id="run-eta"></span><p id="run-detail"></p></div>
   </section>

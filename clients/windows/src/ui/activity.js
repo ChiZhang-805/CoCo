@@ -51,14 +51,15 @@ document.addEventListener('workspace-page', () => {
   header.append(byId('chat-panel-slot'));
 });
 byId('share-activity').onclick = () => {
-  const title = showPhone ? 'Phone activity' : 'Haining International Campus';
+  const title = showPhone ? 'Phone activity' : campus.name;
   let lines;
   if (showPhone) {
     lines = [byId('phone-status').textContent, ...Array.from(byId('phone-operations').children, li => li.textContent)];
   } else {
-    const latitude = 30.52079 - (camera.y - 0.5) * 0.032;
-    const longitude = 120.72156 + (camera.x - 0.5) * 0.014 / Math.cos(30.52079 * Math.PI / 180);
-    const link = 'https://www.openstreetmap.org/#map=' + (16 + Math.round(Math.log2(camera.zoom))) + '/' + latitude.toFixed(5) + '/' + longitude.toFixed(5);
+    const latitude = campus.lat - (camera.y - 0.5) * campus.span;
+    const longitude = campus.lon + (camera.x - 0.5) * longitudeSpan();
+    const zoom = Math.round(Math.log2(360 * mapSize(camera.zoom) / (256 * longitudeSpan())));
+    const link = 'https://www.openstreetmap.org/#map=' + zoom + '/' + latitude.toFixed(5) + '/' + longitude.toFixed(5);
     lines = [link];
     if (!byId('run-summary').hidden) lines.push(...['run-name','run-detail','run-eta'].map(id => byId(id).textContent).filter(Boolean));
     lines.push('Map data © OpenStreetMap contributors');
@@ -78,18 +79,40 @@ let runKey = null;
 let fix = null;
 let following = false;
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
-const mapAspect = 2352 / 5376;
-for (const [name, x, y, detail] of [
-  ['Library',55.092,45.726], ['Auditorium',43.562,52.131], ['Residences',76.099,49.294],
-  ['Juanhu Park',46.196,95.919], ['Bell Tower',57.112,46.761,true],
-  ['Student Center',58.631,49.037,true], ['East Theatre',48.242,54.579,true]
-]) {
-  const label = document.createElement('span');
-  label.className = detail ? 'map-label minor' : 'map-label';
-  label.textContent = name;
-  label.style.left = x + '%';
-  label.style.top = y + '%';
-  mapSheet.append(label);
+let campus = campusMaps[0];
+let mapAspect = campus.aspect;
+let latestActivity = { run: null, phone: null };
+function longitudeSpan() {
+  return campus.span * mapAspect / Math.cos(campus.lat * Math.PI / 180);
+}
+function drawMapLabels() {
+  mapSheet.querySelectorAll('.map-label').forEach(label => label.remove());
+  for (const [name, x, y, detail] of campus.labels) {
+    const label = document.createElement('span');
+    label.className = detail ? 'map-label minor' : 'map-label';
+    label.textContent = name;
+    label.style.left = x + '%';
+    label.style.top = y + '%';
+    mapSheet.append(label);
+  }
+}
+drawMapLabels();
+function selectCampusMap(next) {
+  if (campus === next) return;
+  campus = next;
+  mapAspect = campus.aspect ?? 1;
+  const image = mapSheet.querySelector('img');
+  image.style.aspectRatio = String(mapAspect);
+  image.src = campus.image;
+  image.alt = campus.name;
+  byId('activity-map-name').textContent = campus.name;
+  drawMapLabels();
+  manualCamera();
+  Object.assign(camera, { x: 0.5, y: 0.5, zoom: 1 });
+  destination = { ...camera };
+  fix = null;
+  paintMap();
+  updateActivityView(latestActivity);
 }
 function mapSize(zoom) {
   return Math.max(mapFrame.clientWidth, mapFrame.clientHeight * mapAspect) * zoom;
@@ -218,12 +241,11 @@ mapFrame.addEventListener('keydown', event => {
 
 function mapPosition(position) {
   if (!Number.isFinite(position?.latitude) || !Number.isFinite(position?.longitude)) return null;
-  const x = 0.5 + (position.longitude - 120.72156) * Math.cos(30.52079 * Math.PI / 180) / 0.014;
-  const y = 0.5 - (position.latitude - 30.52079) / 0.032;
+  const x = 0.5 + (position.longitude - campus.lon) / longitudeSpan();
+  const y = 0.5 - (position.latitude - campus.lat) / campus.span;
   return x >= 0 && x <= 1 && y >= 0 && y <= 1 ? { x, y } : null;
 }
-function renderActivity({ run, phone }) {
-  trackWorkspaceActivity({ run, phone });
+function updateActivityView({ run, phone }) {
   const key = run ? (run.id ?? run.name ?? 'run') : null;
   const point = mapPosition(run?.position);
   const firstFix = point && (key !== runKey || !fix);
@@ -252,6 +274,11 @@ function renderActivity({ run, phone }) {
     operations.append(item);
   }
   operations.hidden = !operations.childElementCount;
+}
+function renderActivity(snapshot) {
+  latestActivity = snapshot;
+  trackWorkspaceActivity(snapshot);
+  updateActivityView(snapshot);
 }
 let receivedActivity = false;
 window.coco.onActivity(snapshot => { receivedActivity = true; renderActivity(snapshot); });

@@ -20,6 +20,8 @@ npm start
 
 在同一目录运行 `npm test` 可检查窗口交互，`npm run dist` 可在 `dist/` 生成 Windows x64 安装包。也可直接启动 `dist/win-unpacked/CoCo.exe`，此方式需要保留同目录的运行文件。
 
+Windows 的 Maps 可离线浏览内置校园地图。卡片使用真实校区或校园区域的英文名称，选中后可在 Activity 中平移、缩放和分享当前地图位置。底图由 [OpenStreetMap 贡献者](https://www.openstreetmap.org/copyright)的数据绘制，源数据使用 ODbL 1.0 许可。
+
 ## 系统范围
 
 | 板块 | 职责与边界 |

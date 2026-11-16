@@ -404,56 +404,60 @@ test('Windows desktop', async t => {
     assert.deepEqual(await page.locator('.task-timeline li span').allTextContents(), ['Running', 'Ended']);
     await button('Maps').click();
     await button('Haining International Campus').waitFor();
-    const campusCrop = async (x, y, zoom) => {
-      const data = await page.locator('.map-card img').first().evaluate(async (image, [x,y,zoom]) => {
-        await image.decode();
-        const canvas = document.createElement('canvas');
-        canvas.width = 640;
-        canvas.height = 280;
-        const width = image.naturalWidth / zoom;
-        const height = width * canvas.height / canvas.width;
-        canvas.getContext('2d').drawImage(image, x * image.naturalWidth - width/2, y * image.naturalHeight - height/2,
-          width, height, 0, 0, canvas.width, canvas.height);
-        return canvas.toDataURL('image/png').split(',')[1];
-      }, [x,y,zoom]);
-      return Buffer.from(data, 'base64');
-    };
-    const sketch = await campusCrop(0.5,0.51,1.1);
-    const chooserEvent = page.waitForEvent('filechooser');
-    await button('Add map…').click();
-    await (await chooserEvent).setFiles({ name: 'Campus sketch.png', mimeType: 'image/png', buffer: sketch });
-    await button('Campus sketch').click();
-    await page.getByRole('dialog', { name: 'Campus sketch' }).waitFor();
-    await page.keyboard.press('Escape');
-    const areas = [['Library',.551,.457],['Bell Tower',.571,.468],['Student Center',.586,.490],['Residences',.761,.493],
-      ['East Theatre',.482,.546],['Juanhu Park',.462,.959],['Auditorium',.436,.521]];
-    for (const [name, x, y] of areas) {
-      await page.locator('#map-file').setInputFiles({ name: name + '.png', mimeType: 'image/png', buffer: await campusCrop(x,y,3) });
-      await button(name).waitFor();
-    }
     const grid = await page.locator('.map-card').evaluateAll(cards => cards.map(card => {
       const {x,y,bottom} = card.getBoundingClientRect();
       const label = card.querySelector('strong');
       return { x,y,bottom, fits: label.scrollWidth <= label.clientWidth, lines: getComputedStyle(label).whiteSpace };
     }));
-    assert.equal(grid.length, 9);
+    assert.equal(grid.length, 12);
     assert.equal(new Set(grid.map(card => card.x)).size, 3);
-    assert.equal(new Set(grid.map(card => card.y)).size, 3);
+    assert.equal(new Set(grid.map(card => card.y)).size, 4);
     assert.ok(grid.every(card => card.fits && card.lines === 'nowrap'));
     const mapTitle = await page.locator('#maps-heading').boundingBox();
     assert.ok(Math.abs(grid[0].x - mapTitle.x) < 2);
     assert.ok(grid.at(-1).bottom <= await page.locator('main').evaluate(el => el.getBoundingClientRect().bottom));
     if (process.env.COCO_MAPS_GRID_SCREENSHOT_PATH) await page.screenshot({ path: process.env.COCO_MAPS_GRID_SCREENSHOT_PATH });
+    const covers = await page.locator('.map-card img').evaluateAll(images => images.map(image => image.src));
+    assert.equal(new Set(covers).size, 12);
+    for (const card of await page.locator('.map-card').all()) {
+      const label = await card.getAttribute('title');
+      const cover = await card.locator('img').getAttribute('src');
+      await card.click();
+      await button('Close side panel').waitFor();
+      const map = page.locator('.map-sheet img');
+      await map.evaluate(image => image.decode());
+      assert.equal(await map.getAttribute('src'), cover);
+      assert.equal(await map.getAttribute('alt'), label);
+    }
+    await button('Share activity').click();
+    assert.match(await page.locator('#share-preview').innerText(), /Yungu Campus[\s\S]*30\.33600\/120\.03200/);
+    await page.keyboard.press('Escape');
     await button('Haining International Campus').click();
     await page.getByRole('heading', {name: 'Maps', exact: true}).waitFor();
     if (process.env.COCO_MAPS_PANEL_SCREENSHOT_PATH) await page.screenshot({ path: process.env.COCO_MAPS_PANEL_SCREENSHOT_PATH });
     await button('Close side panel').click();
+    const sketch = await readFile(path.join(root, 'src', 'ui', 'haining-campus.webp'));
+    assert.equal(await button('Add map…').innerText(), '');
+    const chooserEvent = page.waitForEvent('filechooser');
+    await button('Add map…').press('Enter');
+    await (await chooserEvent).setFiles({ name: 'Campus sketch.webp', mimeType: 'image/webp', buffer: sketch });
+    await button('Campus sketch').click();
+    await page.getByRole('dialog', { name: 'Campus sketch' }).waitFor();
+    await page.keyboard.press('Escape');
     await button('Devices').click();
     await page.locator('#device-list').getByText('Campus iPhone', { exact: true }).waitFor();
     await page.waitForFunction(() => !document.querySelector('#refresh-devices').disabled);
     assert.equal(await page.locator('#device-status').innerText(), '');
     await app.evaluate(({ shell }) => { shell.openExternal = async url => { global.settingsUrl = url; }; });
-    await button('Pair a device…').click();
+    for (const name of ['Refresh','Pair a device…']) {
+      const action = button(name);
+      assert.equal(await action.innerText(), '');
+      assert.equal(await action.getAttribute('title'), name);
+      assert.equal(await action.locator('svg use').count(), 1);
+    }
+    await button('Refresh').press('Enter');
+    await page.waitForFunction(() => !document.querySelector('#refresh-devices').disabled);
+    await button('Pair a device…').press('Enter');
     assert.equal(await app.evaluate(() => global.settingsUrl), 'ms-settings:bluetooth');
     await button('Chat').click();
   });

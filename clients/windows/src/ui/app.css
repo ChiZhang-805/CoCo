@@ -340,8 +340,6 @@ dialog .preview-value { color: var(--text); font-size: 22px; margin-bottom: 0; }
 .library-page[data-view="maps"] { container: maps / inline-size; }
 .library-heading { position: sticky; top: 0; z-index: 1; background: white; min-height: var(--header-height); display: flex; align-items: center; gap: 6px; padding: 4px 24px; border-bottom: 1px solid var(--line); }
 .library-heading h1 { flex: 1; font-size: 19px; }
-.library-heading > button { color: var(--accent); font-size: 14px; border-radius: 8px; padding: 7px 10px; }
-.library-heading button:hover { background: var(--lavender); }
 .library-body { width: min(100%,900px); margin-inline: auto; padding: clamp(16px,4vw,46px); }
 .library-body h2 { font-size: 20px; margin: 0 0 12px; }
 .empty-list, #device-status { color: var(--muted); font-size: 14px; }
@@ -364,10 +362,16 @@ dialog .preview-value { color: var(--text); font-size: 22px; margin-bottom: 0; }
 @container maps (max-width: 565px) { .map-list { grid-template-columns: minmax(0,1fr); } }
 .map-card { min-width: 0; padding: 0; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; text-align: left; }
 .map-card img { display: block; width: 100%; height: clamp(85px,16vh,152px); object-fit: cover; }
+@container maps (min-width: 831px) {
+ .map-card img { height: clamp(85px,calc(25vh - 100px),152px); }
+}
 .map-card span { display: flex; align-items: center; gap: 8px; height: 42px; padding: 0 12px; }
 .map-card .icon { flex: none; width: 16px; height: 16px; }
 .map-card strong { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font: 750 14px Nunito,"Segoe UI",sans-serif; }
 .map-card:hover { border-color: #b7a3c5; }
+#campus-map-credit { color: var(--muted); font-size: 12px; margin-top: 12px; padding: 4px 0; }
+#campus-map-credit:hover { text-decoration: underline; }
+#map-error:empty { display: none; }
 #saved-map-dialog { width: min(820px,88vw); }
 #saved-map-image { max-width: 100%; max-height: 60vh; object-fit: contain; display: block; margin: 15px auto; }
 #shortcuts-dialog dl { font-size: 13px; grid-template-columns: 1fr auto; }

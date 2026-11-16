@@ -145,21 +145,20 @@ async function drawMaps() {
   list.replaceChildren();
   for (const url of mapUrls.values()) URL.revokeObjectURL(url);
   mapUrls.clear();
-  const campus = { id: 'campus', name: 'Haining International Campus' };
-  for (const entry of [campus, ...maps.sort((a,b) => b.added - a.added)]) {
+  for (const entry of [...campusMaps, ...maps.sort((a,b) => b.added - a.added)]) {
     const card = element('button', '', 'map-card');
     card.type = 'button';
     card.title = entry.name;
     const img = element('img');
     img.alt = '';
-    const builtin = entry.id === campus.id;
-    img.src = builtin ? 'haining-campus.webp' : URL.createObjectURL(entry.file);
-    if (!builtin) mapUrls.set(entry.id, img.src);
+    img.src = entry.image || URL.createObjectURL(entry.file);
+    if (entry.file) mapUrls.set(entry.id, img.src);
     const caption = element('span');
     caption.append(createIcon('map'),element('strong',entry.name),createIcon('next'));
     card.append(img,caption);
     card.onclick = () => {
-      if (builtin) {
+      if (entry.image) {
+        selectCampusMap(entry);
         if (showPhone) viewSwitch.click();
         openPanel(true);
       } else {
@@ -172,6 +171,7 @@ async function drawMaps() {
     list.append(card);
   }
 }
+byId('campus-map-credit').onclick = () => window.coco.openMapLicence();
 byId('add-map').onclick = () => byId('map-file').click();
 byId('map-file').onchange = async event => {
   const file = event.target.files[0];
