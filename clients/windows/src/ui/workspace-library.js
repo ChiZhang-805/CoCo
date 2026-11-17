@@ -123,6 +123,9 @@ let mapAnchor = 0;
 let libraryMaps = campusMaps;
 let mapsPerPage = 12;
 const mapList = byId('map-list');
+const mapPageNumbers = byId('map-page-numbers');
+const previousMapPage = byId('previous-map-page');
+const nextMapPage = byId('next-map-page');
 function mapPageSize() {
   const style = getComputedStyle(mapList);
   return Number(style.getPropertyValue('--map-rows')) * Number(style.getPropertyValue('--map-columns'));
@@ -172,27 +175,37 @@ function renderMapPage() {
     };
     mapList.append(card);
   }
-  const pager = byId('map-pages');
-  pager.replaceChildren();
+  previousMapPage.disabled = mapPage <= 1;
+  nextMapPage.disabled = mapPage >= pages;
+  mapPageNumbers.replaceChildren();
   const middle = Math.max(3, Math.min(mapPage, pages - 2));
   for (let n = 1; n <= pages; n++) {
     if (pages > 7 && n > 1 && n < pages && Math.abs(n - middle) > 1) {
-      if (n === 2 || n === pages - 1) pager.append(element('span', '…'));
+      if (n === 2 || n === pages - 1) mapPageNumbers.append(element('span', '…'));
       continue;
     }
     const button = element('button', String(n));
     button.type = 'button';
+    button.value = n;
     button.setAttribute('aria-label', 'Page ' + n);
     if (n === mapPage) button.setAttribute('aria-current', 'page');
-    button.onclick = () => {
-      mapAnchor = (n - 1) * mapPageSize();
-      renderMapPage();
-      byId('main').scrollTop = 0;
-      pager.querySelector('[aria-current]').focus({ preventScroll: true });
-    };
-    pager.append(button);
+    mapPageNumbers.append(button);
   }
 }
+byId('map-pages').addEventListener('click', event => {
+  const button = event.target.closest('button');
+  if (!button || button.disabled) return;
+  const current = Math.floor(mapAnchor / mapsPerPage) + 1;
+  let page = Number(button.value);
+  if (button === previousMapPage) page = current - 1;
+  if (button === nextMapPage) page = current + 1;
+  mapAnchor = (page - 1) * mapsPerPage;
+  renderMapPage();
+  byId('main').scrollTop = 0;
+  if (!button.isConnected || button.disabled) {
+    mapPageNumbers.querySelector('[aria-current]').focus({ preventScroll: true });
+  }
+});
 new ResizeObserver(() => {
   if (mapList.clientWidth && mapPageSize() !== mapsPerPage) renderMapPage();
 }).observe(mapList);

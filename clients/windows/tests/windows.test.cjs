@@ -160,6 +160,8 @@ test('Windows desktop', async t => {
       assert.equal(await toggle.getAttribute('aria-expanded'), 'false');
     }
     await button('Alex Chen').click();
+    await checkAnchoredMenu(button('Alex Chen'), '#account-menu');
+    await page.getByRole('menuitem', { name: 'Profile', exact: true }).press('Enter');
     await page.getByRole('dialog', { name: 'Your profile' }).waitFor();
     await page.keyboard.press('Escape');
     await button('Expand sidebar').focus();
@@ -461,6 +463,29 @@ test('Windows desktop', async t => {
     assert.equal(await button('Forward').isDisabled(), true);
     await page.getByRole('heading', { name: 'Paired devices' }).waitFor();
     await button('Alex Chen').click();
+    await checkAnchoredMenu(button('Alex Chen'), '#account-menu');
+    const menu = page.getByRole('menu', { name: 'Account' });
+    const menuBox = await menu.boundingBox();
+    assert.ok(menuBox.y + menuBox.height < (await button('Alex Chen').boundingBox()).y);
+    assert.equal(await menu.getByRole('menuitem', { name: 'Quota Unavailable' }).isDisabled(), true);
+    assert.equal(await menu.getByRole('menuitem', { name: 'Sign out' }).isDisabled(), true);
+    await menu.getByRole('menuitem', { name: 'Profile', exact: true }).press('ArrowDown');
+    await page.keyboard.press('Enter');
+    const layout = page.getByRole('combobox', { name: 'Sidebar layout' });
+    await layout.selectOption('compact');
+    assert.equal(await button('Expand sidebar').getAttribute('aria-expanded'), 'false');
+    assert.equal(await page.evaluate(() => localStorage.getItem('sidebar-layout')), 'compact');
+    await layout.selectOption('auto');
+    await page.keyboard.press('Escape');
+    assert.equal(await page.locator(':focus').getAttribute('id'), 'profile');
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('Escape');
+    assert.equal(await menu.isHidden(), true);
+    await button('Alex Chen').click();
+    await page.getByRole('heading', { name: 'Paired devices' }).click();
+    assert.equal(await menu.isHidden(), true);
+    await button('Alex Chen').click();
+    await menu.getByRole('menuitem', { name: 'Profile', exact: true }).click();
     await page.getByRole('dialog', { name: 'Your profile' }).waitFor();
     await button('Close').click();
     await button('Chat').click();
@@ -556,7 +581,21 @@ test('Windows desktop', async t => {
     if (process.env.COCO_MAPS_GRID_SCREENSHOT_PATH) await page.screenshot({ path: process.env.COCO_MAPS_GRID_SCREENSHOT_PATH });
     const covers = await page.locator('.map-card img').evaluateAll(images => images.map(image => image.src));
     assert.equal(new Set(covers).size, 12);
-    assert.deepEqual(await page.locator('#map-pages button').allTextContents(), ['1','2','3','4']);
+    assert.deepEqual(await page.locator('#map-page-numbers button').allTextContents(), ['1','2','3','4']);
+    const previous = button('Previous page');
+    const next = button('Next page');
+    assert.equal(await previous.isDisabled(), true);
+    await next.press('Enter');
+    assert.equal(await button('Page 2').getAttribute('aria-current'), 'page');
+    assert.equal(await next.evaluate(node => node === document.activeElement), true);
+    await previous.press('Enter');
+    assert.equal(await previous.isDisabled(), true);
+    assert.equal(await button('Page 1').evaluate(node => node === document.activeElement), true);
+    await button('Page 3').click();
+    await next.click();
+    assert.equal(await next.isDisabled(), true);
+    assert.equal(await button('Page 4').getAttribute('aria-current'), 'page');
+    await button('Page 1').click();
     assert.equal(await page.getByText('Campus maps © OpenStreetMap contributors').count(), 0);
     await button('Map credits').click();
     await button('Open data licence').waitFor();
@@ -746,13 +785,14 @@ test('Windows desktop', async t => {
     if (await fresh.getByRole('button', { name: 'Maximize', exact: true }).isVisible()) {
       await fresh.getByRole('button', { name: 'Maximize', exact: true }).click();
     }
-    await fresh.waitForFunction(() => document.querySelectorAll('#map-pages button').length === 5);
+    await fresh.waitForFunction(() => document.querySelectorAll('#map-page-numbers button').length === 5);
     await fresh.getByRole('button', { name: 'Page 5', exact: true }).click();
     await fresh.getByRole('button', { name: 'Campus sketch', exact: true }).waitFor();
     await fresh.getByRole('button', { name: 'Campus sketch', exact: true }).click();
     await fresh.getByRole('button', { name: 'Remove from Maps' }).click();
     await fresh.waitForFunction(() => document.querySelector('#map-pages [aria-current]')?.textContent === '4');
-    assert.equal(await fresh.locator('#map-pages button').count(), 4);
+    assert.equal(await fresh.locator('#map-page-numbers button').count(), 4);
+    assert.equal(await fresh.getByRole('button', { name: 'Next page' }).isDisabled(), true);
     await fresh.getByRole('button', { name: 'Devices', exact: true }).click();
     await fresh.locator('#device-list').getByText('Campus iPhone', { exact: true }).waitFor();
     assert.deepEqual(errors, []);

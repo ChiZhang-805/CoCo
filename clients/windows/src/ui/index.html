@@ -33,6 +33,10 @@
 <symbol id="icon-devices" viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="13.5" rx="2"/><path d="M12 18v3m-5 0h10"/></symbol>
 <symbol id="icon-mic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12.5" rx="3"/><path d="M5 11a7 7 0 0 0 14 0m-7 7v4m-3.5 0h7"/></symbol>
 <symbol id="icon-profile" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="currentColor" stroke="none"/><path d="M3 21v-1c0-4.2 4.2-7 9-7s9 2.8 9 7v1Z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="icon-account" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="9" r="3"/><path d="M5.5 18a7.5 7.5 0 0 1 13 0"/></symbol>
+<symbol id="icon-settings" viewBox="0 0 24 24"><path d="M3 7h8m4 0h6M3 17h4m4 0h10"/><circle cx="13" cy="7" r="2.5"/><circle cx="9" cy="17" r="2.5"/></symbol>
+<symbol id="icon-quota" viewBox="0 0 24 24"><path d="M4.2 18a9 9 0 1 1 15.6 0Z"/><path d="m12 14 4-5"/><circle cx="12" cy="14" r="1"/></symbol>
+<symbol id="icon-sign-out" viewBox="0 0 24 24"><path d="M10 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h5m-1-8h12m-5-5 5 5-5 5"/></symbol>
 <symbol id="icon-phone" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10 5h4m-3.5 14h3"/></symbol>
 <symbol id="icon-next" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
 <symbol id="icon-check" viewBox="0 0 24 24"><path d="m4 12 5 5L20 6"/></symbol>
@@ -97,7 +101,13 @@
    <div id="history-list"></div>
   </section>
   <div id="history-menu" popover><button id="pin-chat" type="button"></button><button id="archive-chat" type="button"></button></div>
-  <button id="profile" class="profile" type="button"><span class="avatar"><svg class="icon" aria-hidden="true"><use href="#icon-profile"></use></svg></span><span id="display-name">Local user</span></button>
+  <button id="profile" class="profile" type="button" title="Account menu" popovertarget="account-menu" aria-haspopup="menu"><span class="avatar"><svg class="icon" aria-hidden="true"><use href="#icon-profile"></use></svg></span><span id="display-name">Local user</span></button>
+  <div id="account-menu" popover role="menu" aria-label="Account">
+   <button type="button" role="menuitem" tabindex="-1" data-dialog="profile-dialog" autofocus><svg class="icon" aria-hidden="true"><use href="#icon-account"></use></svg>Profile</button>
+   <button type="button" role="menuitem" tabindex="-1" data-dialog="settings-dialog"><svg class="icon" aria-hidden="true"><use href="#icon-settings"></use></svg>Settings</button>
+   <div role="menuitem" tabindex="-1" aria-disabled="true"><svg class="icon" aria-hidden="true"><use href="#icon-quota"></use></svg>Quota <small>Unavailable</small></div>
+   <button type="button" role="menuitem" tabindex="-1" aria-disabled="true" title="No CoCo account is signed in"><svg class="icon" aria-hidden="true"><use href="#icon-sign-out"></use></svg>Sign out</button>
+  </div>
  </aside>
  <main id="main" tabindex="-1">
   <section data-view="chat" class="chat-page" aria-labelledby="chat-title">
@@ -172,7 +182,11 @@
     <button type="button" id="add-map" class="icon-action" aria-label="Add map…" title="Add map…"><svg class="icon" aria-hidden="true"><use href="#icon-plus"></use></svg></button>
    </header>
    <div class="library-body"><div id="map-list" class="map-list"></div><p id="map-error" role="status"></p></div>
-   <div id="map-pages" role="navigation" aria-label="Map pages"></div>
+   <div id="map-pages" role="navigation" aria-label="Map pages">
+    <button id="previous-map-page" type="button" aria-label="Previous page" title="Previous page"><svg class="icon" aria-hidden="true"><use href="#icon-next"></use></svg></button>
+    <div id="map-page-numbers"></div>
+    <button id="next-map-page" type="button" aria-label="Next page" title="Next page"><svg class="icon" aria-hidden="true"><use href="#icon-next"></use></svg></button>
+   </div>
    <input type="file" id="map-file" accept="image/jpeg,image/png,image/webp" hidden>
   </section>
   <section data-view="devices" class="library-page" hidden aria-labelledby="devices-heading">
@@ -235,6 +249,11 @@
  </form>
 </dialog>
 <dialog id="profile-dialog" aria-labelledby="profile-title"><h2 id="profile-title">Your profile</h2><p id="profile-name"></p><button type="button" class="primary" data-dismiss>Close</button></dialog>
+<dialog id="settings-dialog" aria-labelledby="settings-title"><h2 id="settings-title">Settings</h2>
+ <label for="sidebar-layout">Sidebar layout</label>
+ <select id="sidebar-layout"><option value="auto">Automatic</option><option value="expanded">Expanded</option><option value="compact">Compact</option></select>
+ <button type="button" class="secondary" data-dismiss>Close</button>
+</dialog>
 <dialog id="order-dialog" aria-labelledby="order-title"><h2 id="order-title">Order on iPhone</h2><p>Choose your drink and confirm payment in the merchant’s app on your iPhone.</p><button type="button" class="primary" data-dismiss>Close</button></dialog>
 <dialog id="share-dialog" aria-labelledby="share-title"><h2 id="share-title">Share conversation</h2>
  <pre id="share-preview" tabindex="0"></pre><p id="share-status" role="status"></p>

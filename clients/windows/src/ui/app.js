@@ -67,10 +67,12 @@ document.querySelectorAll('[data-edit-meeting]').forEach(button => {
 byId('back').addEventListener('click', () => travel(-1));
 byId('forward').addEventListener('click', () => travel(1));
 const sidebarToggle = byId('sidebar');
-let sidebarPreference;
+const sidebarLayout = byId('sidebar-layout');
+sidebarLayout.value = localStorage.getItem('sidebar-layout') || 'auto';
 
 function updateSidebar() {
-  const expanded = sidebarPreference ?? (byId('workspace').clientWidth > 530);
+  const expanded = sidebarLayout.value === 'expanded' ||
+    (sidebarLayout.value !== 'compact' && byId('workspace').clientWidth > 530);
   byId('rail').classList.toggle('compact', !expanded);
   sidebarToggle.setAttribute('aria-expanded', String(expanded));
   sidebarToggle.title = expanded ? 'Collapse sidebar' : 'Expand sidebar';
@@ -78,9 +80,14 @@ function updateSidebar() {
   sidebarToggle.querySelector('use').setAttribute('href', expanded ? '#icon-collapse' : '#icon-expand');
 }
 
-sidebarToggle.addEventListener('click', () => {
-  sidebarPreference = sidebarToggle.getAttribute('aria-expanded') !== 'true';
+function saveSidebarLayout() {
+  localStorage.setItem('sidebar-layout', sidebarLayout.value);
   updateSidebar();
+}
+sidebarLayout.addEventListener('change', saveSidebarLayout);
+sidebarToggle.addEventListener('click', () => {
+  sidebarLayout.value = sidebarToggle.getAttribute('aria-expanded') === 'true' ? 'compact' : 'expanded';
+  saveSidebarLayout();
 });
 new ResizeObserver(updateSidebar).observe(byId('workspace'));
 updateSidebar();
@@ -141,13 +148,40 @@ byId('order').addEventListener('click', () => {
   byId('chat-tools').hidePopover();
   byId('order-dialog').showModal();
 });
-byId('profile').addEventListener('click', () => byId('profile-dialog').showModal());
+const profileButton = byId('profile');
+const accountMenu = byId('account-menu');
+const accountItems = [...accountMenu.querySelectorAll('[role="menuitem"]')];
+profileButton.addEventListener('keydown', event => {
+  if (!['ArrowUp', 'ArrowDown'].includes(event.key)) return;
+  event.preventDefault();
+  accountMenu.showPopover({ source: profileButton });
+  (event.key === 'ArrowUp' ? accountItems.at(-1) : accountItems[0]).focus();
+});
+accountMenu.addEventListener('keydown', event => {
+  if (event.key === 'Tab') {
+    accountMenu.hidePopover();
+    profileButton.focus();
+    return;
+  }
+  const index = accountItems.indexOf(document.activeElement);
+  const destinations = { ArrowDown: (index + 1) % accountItems.length,
+    ArrowUp: (index + accountItems.length - 1) % accountItems.length, Home: 0, End: accountItems.length - 1 };
+  if (!Object.hasOwn(destinations, event.key)) return;
+  event.preventDefault();
+  accountItems[destinations[event.key]].focus();
+});
+accountMenu.addEventListener('click', event => {
+  const item = event.target.closest('[data-dialog]');
+  if (!item) return;
+  accountMenu.hidePopover();
+  profileButton.focus();
+  byId(item.dataset.dialog).showModal();
+});
 document.querySelectorAll('[data-dismiss]').forEach(button => {
   button.addEventListener('click', () => button.closest('dialog').close());
 });
 window.coco.profileName().then(name => {
   byId('display-name').textContent = name;
   byId('profile-name').textContent = name;
-  byId('profile').title = name;
 });
 showPage(false);

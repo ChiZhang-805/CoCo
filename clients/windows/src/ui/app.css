@@ -64,7 +64,22 @@ nav button { padding-right: calc(5 * var(--u)); }
 nav small { display: block; color: var(--muted); font-size: max(12px,calc(17 * var(--u))); font-weight: 500; margin-top: 2px; }
 nav button:hover, .profile:hover { background: #e8e7eb; }
 nav button[aria-current="page"] { background: var(--lavender); font-weight: 750; }
-.profile { margin-top: auto; margin-bottom: calc(14 * var(--u)); padding: 8px 8px; display: flex; align-items: center; gap: calc(16 * var(--u)); width: 100%; text-align: left; border-radius: 12px; font: 750 max(16px,calc(21 * var(--u)))/1.35 Nunito, "Segoe UI", sans-serif; }
+.profile { anchor-name: --profile-button; margin-top: auto; margin-bottom: calc(14 * var(--u)); padding: 8px 8px; display: flex; align-items: center; gap: calc(16 * var(--u)); width: 100%; text-align: left; border-radius: 12px; font: 750 max(16px,calc(21 * var(--u)))/1.35 Nunito, "Segoe UI", sans-serif; }
+#rail:has(#account-menu:popover-open) .profile { background: var(--lavender); }
+#account-menu {
+  position: fixed; position-anchor: --profile-button; inset: auto; left: anchor(left); bottom: calc(anchor(top) + 6px);
+  width: clamp(190px, anchor-size(width), 248px); max-width: calc(100vw - 20px); max-height: calc(anchor(top) - 12px);
+  margin: 0; padding: 5px; overflow-y: auto; border: 1px solid var(--line); border-radius: 13px;
+  background: white; color: var(--text); box-shadow: 0 8px 28px #36263d22;
+}
+#account-menu [role="menuitem"] { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 42px; padding: 6px 10px; border-radius: 8px; text-align: left; font: 550 14px/1.4 Noto,"Segoe UI",sans-serif; }
+#account-menu .icon { width: 18px; height: 18px; color: var(--muted); }
+#account-menu small { margin-left: auto; color: var(--muted); font: 400 12px/1.4 Noto,"Segoe UI",sans-serif; }
+#account-menu button:not([aria-disabled]):hover { background: var(--lavender); }
+#account-menu [role="menuitem"]:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; }
+#account-menu button[aria-disabled] { color: var(--muted); cursor: default; }
+#settings-dialog label { display: block; margin: 20px 0 6px; }
+#sidebar-layout { display: block; margin-bottom: 20px; width: 100%; min-height: 42px; padding-inline: 10px; border: 1px solid var(--muted); border-radius: 8px; background: white; color: var(--text); font: inherit; }
 #display-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .avatar { display: grid; place-items: center; flex: none; background: var(--lavender); border-radius: 50%; color: #a579d0; }
 .avatar { width: max(34px,calc(44 * var(--u))); height: max(34px,calc(44 * var(--u))); }
@@ -410,9 +425,17 @@ dialog .preview-value { color: var(--text); font-size: 22px; margin-bottom: 0; }
 .map-card strong { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font: 750 14px Nunito,"Segoe UI",sans-serif; }
 .map-card:hover { border-color: #b7a3c5; }
 #map-pages { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 6px 8px 9px; }
-#map-pages button { min-width: clamp(24px,5cqw,34px); height: 34px; border-radius: 9px; color: var(--muted); font: 750 15px Nunito,"Segoe UI",sans-serif; }
-#map-pages button:hover, #map-pages button[aria-current] { background: var(--lavender); color: var(--accent); }
+#map-page-numbers { display: contents; }
+#map-pages button { display: grid; place-items: center; min-width: clamp(24px,5cqw,34px); height: 34px; border-radius: 9px; color: var(--muted); font: 750 15px Nunito,"Segoe UI",sans-serif; }
+#map-pages .icon { width: 16px; height: 16px; }
+#previous-map-page .icon { transform: scaleX(-1); }
+#map-pages button:disabled { opacity: .4; }
+#map-pages button:enabled:hover, #map-pages button[aria-current] { background: var(--lavender); color: var(--accent); }
 #map-pages button[aria-current] { box-shadow: inset 0 0 0 1px var(--accent); }
+@container maps (max-width: 300px) {
+ #map-pages { gap: 2px; padding-inline: 0; }
+ #map-page-numbers > :not([aria-current], :first-child, :last-child) { display: none; }
+}
 #map-library-credits { position: fixed; inset: auto; right: anchor(right); top: calc(anchor(bottom) + 4px); position-try-fallbacks: flip-block, flip-inline; margin: 0; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--line); box-shadow: 0 4px 16px #30203920; font-size: 13px; }
 #library-map-source { padding: 4px 0; text-decoration: underline; color: var(--accent); }
 #map-error:empty { display: none; }
